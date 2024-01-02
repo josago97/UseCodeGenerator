@@ -1,0 +1,151 @@
+model SistemaNavegacion
+
+class Avion
+attributes
+	nombre:String
+	identificador:String
+end
+
+class Modelo
+attributes
+	nombre:String init = 'fdfd';
+	asientos:Integer init = 3;
+end
+
+class CompaniaAerea
+operations
+	startVuelo(v:Vuelo)
+	begin
+		v.abrirFacturacion();
+		v.cerrarFacturacion();
+		v.embarque();
+		v.finEmbarque();
+		v.despegue();
+		end
+		
+	vueloTerminado(v :Vuelo)
+	begin
+		v.desembarque();
+	end
+end
+
+class Destino
+attributes
+	codigo:String
+end
+
+class Etapa
+attributes
+	fSalida:Date
+	fLlegada:Date
+end
+
+class Aeropuerto
+attributes
+	codigo:String
+	nombre:String
+	
+operations
+	cierrePuertas(v :Vuelo)
+	begin
+	self.torreDeControl.vueloListoDespegar(v);
+	end
+	vueloLlegando(v :Vuelo)
+	begin
+	self.torreDeControl.permisoAterrizar(v);
+	end
+end
+
+class Ciudad
+end
+
+class Date
+end
+
+class Vuelo
+attributes
+	fecha:Date
+
+operations
+	abrirFacturacion() begin end
+	cerrarFacturacion() begin end
+	embarque() begin end
+	finEmbarque() begin end
+	despegue() begin end
+	espere() begin end
+	aterrice() begin end
+	desembarque() begin end
+
+end
+
+class Trayecto
+attributes
+end
+
+class TorreControl
+operations
+	vueloListoDespegar(v :Vuelo)
+	begin
+	v.despegue();
+	end
+	permisoAterrizar(v :Vuelo)
+	begin
+	v.espere();
+	v.aterrice();
+	end
+end
+
+association Marca between
+Avion[*] role aviones
+Modelo[1] role modelo
+end
+
+association Propiedad between
+CompaniaAerea[1] role compania
+Avion[*] role avion
+end
+
+association Servicio between
+CompaniaAerea[1] role operador
+Destino[1..*] role destinos
+end
+
+association EtapaDestino between
+Etapa[1..*] role estapas
+Destino[1..*] role destinos
+end
+
+association To between
+Aeropuerto[1] role hasta
+Destino[*] role llegadas
+end
+
+association From between
+Aeropuerto[1] role desde
+Destino[*] role salidas
+end
+
+association Ubicacion between
+Aeropuerto[*] role aeropuerto
+Ciudad[1] role ciudad
+end
+
+association VueloDestino between
+Vuelo[1..*] role vuelos
+Destino[1] role destinos
+end
+
+association TrayectoEtapa between
+Etapa[1] role etapa
+Trayecto[1..*] role trayectos
+end
+
+association TrayectoAvion between
+Avion[1] role avion
+Trayecto[1..*] role trayectos
+end
+
+association TorreAeropuerto between
+TorreControl[1] role torreDeControl
+Aeropuerto[1] role aeropuerto
+end

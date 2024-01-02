@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+  </ItemGroup>
+
+  <Target Name="GenerateAntlrArtifacts" BeforeTargets="BeforeResolveReferences">
+  	<PropertyGroup>
+      <_GrammarFile>Assets/Use.g4</_GrammarFile>
+      <_Generated>Use/SyntaxAnalizer</_Generated>
+      <_Namespace>UseCodeGenerator.Core.Use.SyntaxAnalizer</_Namespace>
+  	</PropertyGroup>
+  	<Exec Command="dotnet antlr4-tool -Dlanguage=CSharp  -o &quot;$(_Generated)&quot; -visitor -package $(_Namespace)  &quot;$(_GrammarFile)&quot;" />
+  </Target>
+
+</Project>

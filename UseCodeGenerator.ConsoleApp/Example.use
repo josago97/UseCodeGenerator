@@ -1,0 +1,28 @@
+model SistemaNavegacion 
+
+class EmptyClass < AbstractEmptyClass
+end
+
+abstract class AbstractEmptyClass
+end
+
+# This is a exmple comment
+
+class Plane
+attributes
+	id:Integer
+	name:String
+	isLanding:Boolean
+	speed:Real
+end
+
+class Modelo
+attributes
+	nombre:String init = 'fdfd';
+	asientos:Integer init = 3;
+end
+
+enum DayOfWeek {
+	Monday,
+	Friday
+}
