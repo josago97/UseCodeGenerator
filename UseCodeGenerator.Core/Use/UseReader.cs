@@ -5,7 +5,7 @@ using UseCodeGenerator.Core.Use.Entities;
 
 namespace UseCodeGenerator.Core.Use;
 
-public class UseReader
+internal class UseReader
 {
     public UModel Read(string text)
     {
@@ -123,7 +123,7 @@ public class UseReader
         public override UAttribute VisitAttribute([NotNull] UseParser.AttributeContext context)
         {
             string name = context.ID().GetText();
-            UType type = Model.FindType(context.type().GetText());
+            UType type = GetType(context.type().GetText());
             string initValue = context.typeLiteral()?.GetText();
 
             return new UAttribute(name, type, initValue);
@@ -137,10 +137,26 @@ public class UseReader
 
             if (!string.IsNullOrEmpty(returnTypeName))
             {
-                returnType = Model.FindType(returnTypeName);
+                returnType = GetType(returnTypeName);
             }
 
             return new UOperation(name, returnType);
+        }
+
+        private UType GetType(string name)
+        {
+            UType type;
+
+            if (Enum.TryParse(name, true, out UPrimitiveType.Kind kind))
+            {
+                type = new UPrimitiveType(kind);
+            }
+            else
+            {
+                type = Model.FindType(name);
+            }
+
+            return type;
         }
 
         class ClassToken
@@ -201,7 +217,7 @@ public class UseReader
             {
                 string multText = mult.GetText();
 
-                return multText == "*" ? -1 : int.Parse(multText);
+                return multText == "*" ? UAssociation.Multiplicity.Infinity : int.Parse(multText);
             }
 
             if (multiplicityContexts.Length == 1)

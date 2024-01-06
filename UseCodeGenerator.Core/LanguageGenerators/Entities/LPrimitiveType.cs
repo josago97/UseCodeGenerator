@@ -1,6 +1,6 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal class LPrimitiveType : LType
+internal record LPrimitiveType(LPrimitiveType.Kind Type) : LType
 {
     public enum Kind
     {
@@ -9,6 +9,4 @@ internal class LPrimitiveType : LType
         Real,
         String
     }
-
-    public Kind Type { get; set; }
 }

@@ -1,7 +1,5 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal class LEnumeration : LType
+internal record LEnumeration(string Name, IEnumerable<string> Values) : ILTypeDefinition
 {
-    public string Name { get; init; }
-    public IEnumerable<string> Values { get; init; }
 }

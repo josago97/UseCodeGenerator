@@ -1,53 +1,126 @@
-﻿using System.Reflection.Metadata.Ecma335;
+﻿using System;
 using UseCodeGenerator.Core.LanguageGenerators.Entities;
+using UseCodeGenerator.Utilities;
 
 namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 
 internal class CSharpWriter : LanguageWriter
 {
-    private const string CLASS = "class";
-    private const string ABSTRACT = "abstract";
-    private const string ENUM = "enum";
+    private const string FILE_EXTENSION = "cs";
 
-    protected override CodeFile MakeClass(LClass @class)
+    protected override string FileExtension => FILE_EXTENSION;
+
+    protected override void MakeClass(LClass @class, CodeBuilder builder)
     {
-        string classType = "class";
-
-        if (@class.IsAbstract) classType = "abstract" + " " + classType;
-
-        WriteNamespace();
-        WriteLine($"public {classType} {@class.Name}");
-        WriteLine("{");
-        TabIndex++;
-        //WriteLine(string.Join(",\n", enumeration.Values));
-        TabIndex--;
-        WriteLine("}");
-        //WriteLine()
-
-        throw new NotImplementedException();
+        WriteNamespace(builder);
+        builder.WriteLine();
+        WriteClassHeader(@class, builder);
+        builder.WriteLine("{");
+        builder.AddTab();
+        WriteProperties(@class.Attributes, builder);
+        builder.WriteLine();
+        WriteMethods(@class.Methods, builder);
+        builder.RemoveTab();
+        builder.WriteLine("}");
+        builder.WriteLine();
     }
 
-    protected override CodeFile MakeEnumeration(LEnumeration enumeration)
+    private void WriteClassHeader(LClass @class, CodeBuilder builder)
     {
-        WriteNamespace();
-        WriteLine($"public enum {enumeration.Name}");
-        WriteLine("{");
-        TabIndex++;
-        WriteLine(string.Join(",\n", enumeration.Values));
-        TabIndex--;
-        WriteLine("}");
+        builder.Write("public ");
 
-        return null;
+        if (@class.IsAbstract)
+        {
+            builder.Write("abstract ");
+        }
+
+        builder.Write($"class {@class.Name.ToPascalCase()}");
+
+        if (@class.Parents.Length > 0)
+        {
+            builder.Write(" " + string.Join(", ", @class.Parents));
+        }
+
+        builder.WriteLine();
     }
 
-    private void WriteNamespace()
+    private void WriteProperties(IEnumerable<LAttribute> attributes, CodeBuilder builder)
     {
-        WriteLine($"namespace {Project.Name};");
+        foreach (LAttribute attribute in attributes)
+        {
+            string name = attribute.Name.ToPascalCase();
+            string type = GetTypeName(attribute.Type);
+
+            builder.Write($"public {type} {name} {{ get; set; }}");
+
+            if (attribute.InitValue != null)
+            {
+                builder.Write($" = {attribute.InitValue}");
+            }
+
+            builder.WriteLine();
+        }
     }
 
-    private CodeFile GetCodeFile(string a)
+    private void WriteMethods(IEnumerable<LMethod> methods, CodeBuilder builder)
     {
-        return null;
+        foreach (LMethod method in methods)
+        {
+            string name = method.Name.ToPascalCase();
+            string returnType = GetReturnType(method.ReturnType);
+
+            builder.WriteLine($"public {returnType} {name}()");
+            builder.WriteLine("{ }");
+        }
+    }
+
+    private string GetReturnType(LType type)
+    {
+        return type switch
+        {
+            null => "void",
+            _ => GetTypeName(type)
+        };
+    }
+
+    protected override void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder)
+    {
+        WriteNamespace(builder);
+        builder.WriteLine();
+        builder.WriteLine($"public enum {enumeration.Name}");
+        builder.WriteLine("{");
+        builder.AddTab();
+        builder.WriteLine(string.Join(",\n", enumeration.Values));
+        builder.RemoveTab();
+        builder.WriteLine("}");
+    }
+
+    private void WriteNamespace(CodeBuilder builder)
+    {
+        builder.WriteLine($"namespace {Project.Name.ToPascalCase()};");
+    }
+
+    private string GetTypeName(LType type)
+    {
+        return type switch
+        {
+            LPrimitiveType primitive => primitive.Type switch
+            {
+                LPrimitiveType.Kind.Boolean => "boolean",
+                LPrimitiveType.Kind.Integer => "int",
+                LPrimitiveType.Kind.Real => "double",
+                LPrimitiveType.Kind.String => "string",
+                _ => throw new Exception($"Unknown type {type}")
+            },
+            LCustomType custom => custom.Name,
+            LCollectionType collection => $"IList<{GetTypeName(collection.Type)}>",
+            _ => "null"// throw new Exception($"Unknown type {type}")
+        };
+    }
+
+    protected override string GetFileName(ILTypeDefinition typeDefinition)
+    {
+        return typeDefinition.Name.ToPascalCase();
     }
 
     //private 

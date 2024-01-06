@@ -1,5 +1,4 @@
 ﻿using UseCodeGenerator.Core;
-using UseCodeGenerator.Core.LanguageGenerators;
 
 namespace UseCodeGenerator.ConsoleApp;
 
@@ -14,10 +13,17 @@ internal class Program
 
         Language language = Language.CSharp;
         CodeGenerator codeGenerator = new CodeGenerator();
-        codeGenerator.GenerateCode(fileContent, language);
+        CodeFile[] files = codeGenerator.GenerateCode(fileContent, language);
 
-        //LanguageWriter codeGenerator = CodeGeneratorFactory.CreateGenerator(model, Language.CSharp);
-        //codeGenerator.Generate("output");
+        string outputFolder = $"output/{language}";
+        Directory.CreateDirectory(outputFolder);
+
+        foreach (CodeFile file in files)
+        {
+            File.WriteAllText($"{outputFolder}/{file.FullName}", file.Content);
+        }
+
+        Console.WriteLine("Files generated successfully");
 
         Console.ReadLine();
     }

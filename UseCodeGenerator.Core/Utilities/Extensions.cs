@@ -15,4 +15,14 @@ public static class Extensions
             ? string.Empty
             : char.ToUpperInvariant(text[0]) + text.Substring(1);
     }
+
+    public static string ToSnakeCase(this string text)
+    {
+        return text.ToLower().Replace(' ', '_');
+    }
+
+    public static string ToUpperSnakeCase(this string text)
+    {
+        return text.ToSnakeCase().ToUpper();
+    }
 }

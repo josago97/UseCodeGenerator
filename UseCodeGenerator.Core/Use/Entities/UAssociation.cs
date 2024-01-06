@@ -18,7 +18,9 @@ internal class UAssociation: UElement
 
     public class Multiplicity
     {
-        public bool IsRange { get; init; }
+        public const int Infinity = int.MaxValue;
+
+        public bool IsCollection { get; init; }
         public int Min { get; init; }
         public int Max { get; init; }
 
@@ -26,7 +28,7 @@ internal class UAssociation: UElement
         {
             Min = min;
             Max = max;
-            IsRange = Min != Max;
+            IsCollection = Max > 1;
         }
 
         public Multiplicity(int multiplicity) : this(multiplicity, multiplicity)

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using UseCodeGenerator.Core.LanguageGenerators.Entities;
+﻿using UseCodeGenerator.Core.LanguageGenerators.Entities;
 
 namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 
@@ -7,52 +6,42 @@ internal abstract class LanguageWriter
 {
     protected static readonly string TAB = new string(' ', 4);
 
-    protected int TabIndex { get; set; }
-    protected LProject Project { get; }
-    private StringBuilder StringBuilder { get; set; }
+    protected abstract string FileExtension { get; }
+    protected LProject Project { get; private set; }
 
-    public IList<CodeFile> Generate(LProject Project)
+    public CodeFile[] Generate(LProject project)
     {
+        Project = project;
         List<CodeFile> files = new List<CodeFile>();
-        StringBuilder = new StringBuilder();
-        TabIndex = 0;
+        CodeBuilder builder = new CodeBuilder(TAB);
 
-        foreach (LClass @class in Project.Classes)
-        {
-            files.Add(MakeClass(@class));
-            StringBuilder.Clear();
-        }
+        files.AddRange(GenerateFiles(Project.Classes, builder, MakeClass));
+        files.AddRange(GenerateFiles(Project.Enumerations, builder, MakeEnumeration));
 
-        foreach (LEnumeration enumeration in Project.Enumerations)
-        {
-            files.Add(MakeEnumeration(enumeration));
-            StringBuilder.Clear();
-        }
-
-        return files;
+        return files.ToArray();
     }
 
-    public void Generate(LProject Project, string outputFolder)
+    private IEnumerable<CodeFile> GenerateFiles<T>(
+        IEnumerable<T> typeDefinitons,
+        CodeBuilder builder,
+        Action<T, CodeBuilder> action)
+        where T : ILTypeDefinition
     {
-        Directory.CreateDirectory(outputFolder);
-        IList<CodeFile> files = Generate(Project);
-
-        foreach (CodeFile file in files)
+        /*Parallel.ForAsync(0, 5, () =>
         {
-            File.WriteAllText($"{outputFolder}/{file.FullName}", file.Content);
+
+        });*/
+
+        foreach (T typeDefinition in typeDefinitons)
+        {
+            builder.Clear();
+            action(typeDefinition, builder);
+
+            yield return new CodeFile(GetFileName(typeDefinition), FileExtension, builder.ToString());
         }
     }
 
-    protected void WriteLine(string text)
-    {
-        for (int i = 0; i < TabIndex; i++)
-            StringBuilder.Append(TAB);
-
-        StringBuilder.AppendLine(text);
-    }
-
-    protected abstract CodeFile MakeClass(LClass @class);
-    protected virtual void WriteAttributes() { }
-
-    protected abstract CodeFile MakeEnumeration(LEnumeration enumeration);
+    protected abstract void MakeClass(LClass @class, CodeBuilder builder);
+    protected abstract void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder);
+    protected abstract string GetFileName(ILTypeDefinition typeDefinition);
 }

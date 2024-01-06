@@ -1,9 +1,10 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal class LClass : LType
+internal record LClass(
+    string Name,
+    bool IsAbstract,
+    string[] Parents,
+    LAttribute[] Attributes,
+    LMethod[] Methods) : ILTypeDefinition
 {
-    public string Name { get; init; }
-    public bool IsAbstract { get; init; }
-    public IEnumerable<string> Parents { get; init; }
-    public IEnumerable<LAttribute> Attributes { get; init; }
 }

@@ -1,8 +1,5 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal class LAttribute
+internal record LAttribute(string Name, LType Type, object InitValue = null)
 {
-    public string Name { get; init; }
-    public LType Type { get; init; }
-    public object InitValue { get; init; }
 }

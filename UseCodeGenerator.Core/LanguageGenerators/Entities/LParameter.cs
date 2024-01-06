@@ -1,5 +1,5 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal record LCollectionType(LType Type) : LType
+internal record LParameter (string Name, LType Type)
 {
 }

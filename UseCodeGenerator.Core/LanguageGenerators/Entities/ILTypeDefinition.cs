@@ -1,5 +1,6 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal record LCollectionType(LType Type) : LType
+internal interface ILTypeDefinition
 {
+    string Name { get; }
 }

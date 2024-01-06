@@ -1,4 +1,4 @@
-﻿using UseCodeGenerator.Core.LanguageGenerators;
+﻿using UseCodeGenerator.Core.LanguageGenerators.Entities;
 using UseCodeGenerator.Core.LanguageGenerators.Writers;
 using UseCodeGenerator.Core.Use;
 using UseCodeGenerator.Core.Use.Entities;
@@ -13,8 +13,13 @@ public class CodeGenerator
     {
         UModel useModel = UseReader.Read(useCode);
 
+        UseToLanguageConverter converter = new UseToLanguageConverter();
+        LProject project = converter.Convert(useModel);
+
         LanguageWriter languageWriter = LanguageWriterFactory.CreateWriter(language);
-        
+        CodeFile[] files = languageWriter.Generate(project);
+
+        return files;
     }
 
     public Task<CodeFile[]> GenerateCodeAsync(string useCode, Language language)

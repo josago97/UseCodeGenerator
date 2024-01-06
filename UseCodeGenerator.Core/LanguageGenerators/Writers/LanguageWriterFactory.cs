@@ -8,6 +8,7 @@ internal class LanguageWriterFactory
         {
             Language.CSharp => new CSharpWriter(),
             Language.Java => new JavaWriter(),
+            Language.Python => new PythonWriter(),
             _ => throw new Exception($"Language {language} not supported"),
         };
     }
