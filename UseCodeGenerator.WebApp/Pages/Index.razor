@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.IO.Compression
 @using UseCodeGenerator.Core
 
 <main>
@@ -40,5 +41,20 @@
 
         CodeGenerator generator = new CodeGenerator();
         CodeFile[] files = await generator.GenerateCodeAsync(fileContent, Language);
+
+        await CreateZipFileAsync(files);
+    }
+
+    private async Task CreateZipFileAsync(CodeFile[] files)
+    {
+        using MemoryStream stream = new MemoryStream();
+        using ZipArchive archive = new ZipArchive(new MemoryStream(), ZipArchiveMode.Create);
+
+        foreach (CodeFile file in files)
+        {
+            ZipArchiveEntry entry = archive.CreateEntry(file.FullName);
+            using StreamWriter writer = new StreamWriter(entry.Open());
+            await writer.WriteAsync(file.Content);
+        }
     }
 }
