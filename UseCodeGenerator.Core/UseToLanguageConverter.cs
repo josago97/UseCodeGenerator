@@ -97,8 +97,8 @@ internal class UseToLanguageConverter
         {
             LMethod lMethod = new LMethod(
                 Name: uOperation.Name,
-                ReturnType: null,
-                Parameters: null
+                ReturnType: GetType(uOperation.ReturnType),
+                Parameters: null ?? new LParameter[0]
             );
 
             yield return lMethod;

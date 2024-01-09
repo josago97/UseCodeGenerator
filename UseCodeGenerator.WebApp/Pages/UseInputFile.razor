@@ -1,0 +1,25 @@
+﻿<div class="file-drop-zone @HoverClass" 
+    @ondragenter="OnDragEnter" 
+    @ondragleave="OnDragLeave" 
+    @ondragover="OnDragEnter">
+    <InputFile OnChange="@OnChange" accept=".use" />
+</div>
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<InputFileChangeEventArgs> OnChange { get; set; }
+
+    private string HoverClass { get; set; }
+    private IBrowserFile File { get; set; }
+    
+    private void OnDragEnter(DragEventArgs e) => HoverClass = "hover";
+
+    private void OnDragLeave(DragEventArgs e) => HoverClass = string.Empty;
+
+    private void LoadFile(InputFileChangeEventArgs args)
+    {
+        File = args.File;
+    }
+}

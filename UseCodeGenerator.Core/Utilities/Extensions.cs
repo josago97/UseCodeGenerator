@@ -1,4 +1,6 @@
-﻿namespace UseCodeGenerator.Utilities;
+﻿using System.Text.RegularExpressions;
+
+namespace UseCodeGenerator.Utilities;
 
 public static class Extensions
 {
@@ -18,7 +20,7 @@ public static class Extensions
 
     public static string ToSnakeCase(this string text)
     {
-        return text.ToLower().Replace(' ', '_');
+        return Regex.Replace(text, @"(?<!^)(?=[A-Z])", "_").ToLower();
     }
 
     public static string ToUpperSnakeCase(this string text)

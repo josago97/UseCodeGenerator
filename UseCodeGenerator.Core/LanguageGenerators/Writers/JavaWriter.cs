@@ -53,12 +53,10 @@ internal class JavaWriter : LanguageWriter
 
         foreach (var attribute in attributesInfo)
         {
-            builder.WriteLine($"private {attribute.Type} {attribute.Name};");
-        }
+            string name = attribute.Name.ToCamelCase();
+            string type = GetTypeName(attribute.Type);
 
-        foreach (LAttribute attribute in attributtes)
-        {
-            builder.WriteLine($"public {attribute.Type} {attribute.Name} {{ get; set; }}");
+            builder.WriteLine($"private {type} {name};");
         }
     }
 
@@ -78,7 +76,8 @@ internal class JavaWriter : LanguageWriter
     {
         return type switch
         {
-            _ => "void"
+            null => "void",
+            _ => GetTypeName(type)
         };
     }
 
@@ -108,10 +107,10 @@ internal class JavaWriter : LanguageWriter
                 LPrimitiveType.Kind.Boolean => "boolean",
                 LPrimitiveType.Kind.Integer => "int",
                 LPrimitiveType.Kind.Real => "double",
-                LPrimitiveType.Kind.String => "string",
+                LPrimitiveType.Kind.String => "String",
                 _ => throw new Exception($"Unknown type {type}")
             },
-            _ => throw new Exception($"Unknown type {type}")
+            _ => "Object"
         };
     }
 

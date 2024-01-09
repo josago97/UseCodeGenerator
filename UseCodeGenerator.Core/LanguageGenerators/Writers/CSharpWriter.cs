@@ -106,7 +106,7 @@ internal class CSharpWriter : LanguageWriter
         {
             LPrimitiveType primitive => primitive.Type switch
             {
-                LPrimitiveType.Kind.Boolean => "boolean",
+                LPrimitiveType.Kind.Boolean => "bool",
                 LPrimitiveType.Kind.Integer => "int",
                 LPrimitiveType.Kind.Real => "double",
                 LPrimitiveType.Kind.String => "string",
@@ -114,7 +114,7 @@ internal class CSharpWriter : LanguageWriter
             },
             LCustomType custom => custom.Name,
             LCollectionType collection => $"IList<{GetTypeName(collection.Type)}>",
-            _ => "null"// throw new Exception($"Unknown type {type}")
+            _ => "object"
         };
     }
 

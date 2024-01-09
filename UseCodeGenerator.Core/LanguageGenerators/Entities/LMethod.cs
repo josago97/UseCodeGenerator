@@ -2,7 +2,7 @@
 
 internal record LMethod(
     string Name, 
-    IEnumerable<LParameter> Parameters, 
+    LParameter[] Parameters, 
     LType ReturnType)
 {
 }

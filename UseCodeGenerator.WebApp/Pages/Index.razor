@@ -1,0 +1,44 @@
+﻿@page "/"
+@using UseCodeGenerator.Core
+
+<main>
+    <PageTitle>Index</PageTitle>
+
+    <UseInputFile OnChange="LoadFile" />
+
+
+    <!--<div class="error-message-container">
+        <p>@ErrorMessage</p>
+    </div>-->
+
+
+    <InputSelect @bind-Value=Language>
+        <option value="@Language.CSharp">C#</option>
+        <option value="@Language.Java">Java</option>
+        <option value="@Language.Python">Python</option>
+    </InputSelect>
+
+    <button @onclick=GenerateCode>Generate code</button>
+
+</main>
+
+@code {
+    ElementReference fileDropContainer;
+
+    private IBrowserFile File { get; set; }
+    private Language Language { get; set; }
+
+    private void LoadFile(InputFileChangeEventArgs args)
+    {
+        File = args.File;
+    }
+
+    private async void GenerateCode()
+    {
+        using StreamReader fileReader = new StreamReader(File.OpenReadStream());
+        string fileContent = await fileReader.ReadToEndAsync();
+
+        CodeGenerator generator = new CodeGenerator();
+        CodeFile[] files = await generator.GenerateCodeAsync(fileContent, Language);
+    }
+}

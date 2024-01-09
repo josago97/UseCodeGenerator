@@ -15,7 +15,7 @@ internal class PythonWriter : LanguageWriter
         builder.WriteLine();
         WriteClassHeader(@class, builder);
         builder.AddTab();
-        WriteConstructor(@class.Attributes, builder);
+        WriteConstructor(@class, builder);
         builder.WriteLine();
         WriteMethods(@class.Methods, builder);
         builder.RemoveTab();
@@ -25,7 +25,7 @@ internal class PythonWriter : LanguageWriter
     {
         if (@class.IsAbstract)
         {
-            builder.WriteLine("from abc import ABC, ");
+            builder.WriteLine("from abc import ABC, abstractmethod");
         }
     }
 
@@ -38,7 +38,8 @@ internal class PythonWriter : LanguageWriter
             parents.Add("ABC");
         }
 
-        builder.Write($"class {@class.Name.ToPascalCase()}");
+        string className = @class.Name.ToPascalCase();
+        builder.Write($"class {className}");
 
         if (@class.Parents.Length > 0)
         {
@@ -48,22 +49,37 @@ internal class PythonWriter : LanguageWriter
         builder.WriteLine(":");
     }
 
-    private void WriteConstructor(IList<LAttribute> attributtes, CodeBuilder builder)
+    private void WriteConstructor(LClass @class, CodeBuilder builder)
     {
+        if (@class.IsAbstract)
+        {
+            builder.WriteLine("@abstractmethod");
+        }
+
         builder.WriteLine("def __init__(self) -> None:");
         builder.AddTab();
 
-        if (attributtes.Count == 0)
+        if (@class.Attributes.Length == 0)
         {
             builder.WriteLine("pass");
         }
         else
         {
-            foreach (LAttribute attribute in attributtes)
+            foreach (LAttribute attribute in @class.Attributes)
             {
                 string name = attribute.Name.ToSnakeCase();
+                string type = GetReturnTypeName(attribute.Type);
 
-                builder.WriteLine($"self.{name} =");
+                builder.Write($"self.{name}: {type}");
+
+                if(attribute.InitValue == null)
+                {
+                    builder.WriteLine(" | None = None");
+                }
+                else
+                {
+                    builder.WriteLine(" = {attribute.InitValue}");
+                }
             }
         }
 
@@ -78,12 +94,26 @@ internal class PythonWriter : LanguageWriter
         foreach (LMethod method in methods)
         {
             string name = method.Name.ToSnakeCase();
+            string returnType = GetReturnTypeName(method.ReturnType);
+            string arguments = string.Join(", ",
+                method.Parameters.Select(p =>
+                $"{p.Name.ToSnakeCase()}: {GetTypeName(p.Type)}"));
 
-            builder.WriteLine($"def {name}(self, atr1: str) -> returnType:");
+            builder.WriteLine($"def {name}(self, {arguments}) -> {returnType}:");
             builder.AddTab();
             builder.WriteLine("pass");
             builder.RemoveTab();
+            builder.WriteLine();
         }
+    }
+
+    private string GetReturnTypeName(LType type)
+    {
+        return type switch
+        {
+            null => "None",
+            _ => GetTypeName(type)
+        };
     }
 
     protected override void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder)
@@ -111,8 +141,27 @@ internal class PythonWriter : LanguageWriter
     {
         foreach (string value in enumeration.Values)
         {
-            builder.WriteLine($"{value.ToUpperSnakeCase()} = auto()");
+            string valueName = value.ToUpperSnakeCase();
+            builder.WriteLine($"{valueName} = auto()");
         }
+    }
+
+    private string GetTypeName(LType type)
+    {
+        return type switch
+        {
+            LPrimitiveType primitive => primitive.Type switch
+            {
+                LPrimitiveType.Kind.Boolean => "bool",
+                LPrimitiveType.Kind.Integer => "int",
+                LPrimitiveType.Kind.Real => "float",
+                LPrimitiveType.Kind.String => "str",
+                _ => throw new Exception($"Unknown type {type}")
+            },
+            LCustomType custom => custom.Name,
+            LCollectionType collection => $"list[{GetTypeName(collection.Type)}]",
+            _ => "Any" //"from typing import Any"
+        };
     }
 
     protected override string GetFileName(ILTypeDefinition typeDefinition)

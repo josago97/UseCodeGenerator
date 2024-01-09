@@ -4,6 +4,8 @@ namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 
 internal class CodeBuilder
 {
+    private bool _tabEnable = true;
+
     public int TabIndex { get; private set; }
     private string Tab { get; init; }
     private StringBuilder StringBuilder { get; init; }
@@ -27,15 +29,20 @@ internal class CodeBuilder
 
     public void Write(string text)
     {
-        for (int i = 0; i < TabIndex; i++)
-            StringBuilder.Append(Tab);
+        if (_tabEnable)
+        {
+            for (int i = 0; i < TabIndex; i++)
+                StringBuilder.Append(Tab);
+        }
 
+        _tabEnable = false;
         StringBuilder.Append(text);
     }
 
     public void WriteLine()
     {
         StringBuilder.Append('\n');
+        _tabEnable = true;
     }
 
     public void WriteLine(string text)
