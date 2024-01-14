@@ -43,9 +43,9 @@
 
     private async Task GenerateCodeAsync()
     {
-        string fileExtenson = Path.GetExtension(File.Name);
+        string fileExtension = Path.GetExtension(File.Name).Replace(".", "");
 
-        if (!fileExtenson.Equals(USE_EXTENSION, StringComparison.OrdinalIgnoreCase))
+        if (!fileExtension.Equals(USE_EXTENSION, StringComparison.OrdinalIgnoreCase))
             return;
 
         Console.WriteLine("Leo archivo");
