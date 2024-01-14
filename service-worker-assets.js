@@ -25,7 +25,7 @@
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-30/UJSD/xEnJLN/mNieEnS5U3H+Tj7RqiLlm2fUG/zA=",
+      "hash": "sha256-4+YGRlz4U3X0jV6nJdaIZyzVP3m9WX6P6PckseKEo0Q=",
       "url": "index.html"
     },
     {
@@ -61,7 +61,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-7mdN0nH04KczOcm6+pxFMDIKmmmZuf\/gIi4zNyBOAXs=",
+      "hash": "sha256-Bl+uGKRIASOdTLPfsjeS4Wz6Usn4uxfkEVOTJ+AwIHI=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -69,7 +69,7 @@
       "url": "_framework\/dotnet.native.8.0.1.ego0l4hba4.js"
     },
     {
-      "hash": "sha256-H7Hl\/puljVjcDIOjPrp1aM\/svpKBlKMWTD03OM3kRls=",
+      "hash": "sha256-hZUrwYrM7jAkA4GVqE42TczuzpxnxYMJiv1uA0RiArc=",
       "url": "_framework\/dotnet.native.wasm"
     },
     {
@@ -241,11 +241,11 @@
       "url": "_framework\/System.wasm"
     },
     {
-      "hash": "sha256-4fCt+Py\/zTi0Uy\/INabOyHrxr9nNlmQTe3rMt\/tZCVE=",
+      "hash": "sha256-h+da5c5sVUxL5c+F8egn1BIgXEWWGKv3MudBRT\/OfGs=",
       "url": "_framework\/UseCodeGenerator.Core.wasm"
     },
     {
-      "hash": "sha256-M38ZgSjsie8qNE7JI24K3oIUFxl4jSCua1RcBzPCvKU=",
+      "hash": "sha256-Uhp6y26NNaNK4GrV8LUHuBeY0dPsOrIMx9UQ9FTZmHs=",
       "url": "_framework\/UseCodeGenerator.WebApp.wasm"
     },
     {
@@ -257,5 +257,5 @@
       "url": "_content\/BlazorDownloadFileFast\/download7up.js"
     }
   ],
-  "version": "Qj+Kq\/5t"
+  "version": "\/44um7zv"
 };
