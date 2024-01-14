@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # uses GitHub's checkout action to checkout code form the master branch
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     # sets up .NET SDK
     - name: Setup .NET SDK
