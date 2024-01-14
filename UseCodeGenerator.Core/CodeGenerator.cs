@@ -9,14 +9,14 @@ public class CodeGenerator
 {
     private UseReader UseReader { get; init; } = new UseReader();
 
-    public CodeFile[] GenerateCode(string useCode, Language language)
+    public CodeFile[] GenerateCode(string useCode, Language language, LanguageOptions options = null)
     {
         UModel useModel = UseReader.Read(useCode);
 
         UseToLanguageConverter converter = new UseToLanguageConverter();
         LProject project = converter.Convert(useModel);
 
-        LanguageWriter languageWriter = LanguageWriterFactory.CreateWriter(language);
+        ILanguageWriter languageWriter = LanguageWriterFactory.CreateWriter(language);
         CodeFile[] files = languageWriter.Generate(project);
 
         return files;

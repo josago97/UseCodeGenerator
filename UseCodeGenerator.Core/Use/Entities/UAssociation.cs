@@ -11,7 +11,7 @@ internal class UAssociation: UElement
 
     public class Item
     {
-        public string Class { get; set; }
+        public string ClassName { get; set; }
         public Multiplicity Multiplicity { get; set; }
         public string Role { get; set; }
     }

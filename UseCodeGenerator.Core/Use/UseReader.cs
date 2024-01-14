@@ -32,7 +32,7 @@ internal class UseReader
             VisitAllTypesInBreadth(context);
 
             // Una vez obtenido todos los tipos, los visitamos en profundidad
-            VisitAllTypesInDeth();
+            VisitAllTypesInDepth();
 
             // Visitamos todas las asociaciones
             VisitAllAssociations(context);
@@ -63,9 +63,9 @@ internal class UseReader
             }
         }
 
-        private void VisitAllTypesInDeth()
+        private void VisitAllTypesInDepth()
         {
-            foreach (var classToken in ClassTokens)
+            foreach (ClassToken classToken in ClassTokens)
             {
                 VisitClass(classToken.Class, classToken.Context);
             }
@@ -124,13 +124,23 @@ internal class UseReader
         {
             string name = context.ID().GetText();
             UType type = GetType(context.type().GetText());
-            string initValue = context.typeLiteral()?.GetText();
+            string initValue = GetInitValue(context.typeLiteral());
 
             return new UAttribute(name, type, initValue);
         }
 
+        private string GetInitValue(UseParser.TypeLiteralContext context)
+        {
+            bool isString = context?.simpleTypeLiteral()?.stringLiteral() != null;
+
+            return isString 
+                ? context.GetText().Replace("'", "")
+                : context?.GetText();
+        }
+
         public override UOperation VisitOperation([NotNull] UseParser.OperationContext context)
         {
+            UOperation operation;
             string name = context.ID().GetText();
             string returnTypeName = context.type()?.GetText();
             UType returnType = null;
@@ -140,7 +150,27 @@ internal class UseReader
                 returnType = GetType(returnTypeName);
             }
 
-            return new UOperation(name, returnType);
+            operation = new UOperation(name, returnType);
+
+            foreach (var parameterContext in context.parameter())
+            {
+                UParameter parameter = VisitParameter(parameterContext);
+                operation.Parameters.Add(parameter);
+            }
+
+            return operation;
+        }
+
+        public override UParameter VisitParameter([NotNull] UseParser.ParameterContext context)
+        {
+            string name = context.ID().GetText();
+            UType type = GetType(context.type().GetText());
+
+            return new UParameter()
+            {
+                Name = name,
+                Type = type,
+            };
         }
 
         private UType GetType(string name)
@@ -197,7 +227,7 @@ internal class UseReader
             {
                 UAssociation.Item item = new UAssociation.Item()
                 {
-                    Class = itemContext.className().GetText(),
+                    ClassName = itemContext.className().GetText(),
                     Multiplicity = VisitMultiplicity(itemContext.multiplicity()),
                     Role = itemContext.roleName().GetText(),
                 };

@@ -2,46 +2,52 @@
 
 namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 
-internal abstract class LanguageWriter
+internal abstract class LanguageWriter<TOptions> : ILanguageWriter where TOptions : LanguageOptions, new()
 {
-    protected static readonly string TAB = new string(' ', 4);
-
+    public TOptions Options { get; set; } = new TOptions();
     protected abstract string FileExtension { get; }
     protected LProject Project { get; private set; }
 
     public CodeFile[] Generate(LProject project)
     {
         Project = project;
-        List<CodeFile> files = new List<CodeFile>();
-        CodeBuilder builder = new CodeBuilder(TAB);
+        CodeBuilder codeBuilder = CreateCodeBuilder();
+        CodeFile[] files =
+        [
+            .. GenerateFiles(Project.Classes, codeBuilder, MakeClass),
+            .. GenerateFiles(Project.Enumerations, codeBuilder, MakeEnumeration),
+        ];
 
-        files.AddRange(GenerateFiles(Project.Classes, builder, MakeClass));
-        files.AddRange(GenerateFiles(Project.Enumerations, builder, MakeEnumeration));
-
-        return files.ToArray();
+        return files;
     }
 
     private IEnumerable<CodeFile> GenerateFiles<T>(
-        IEnumerable<T> typeDefinitons,
-        CodeBuilder builder,
+        IEnumerable<T> typeDefinitons, 
+        CodeBuilder builder, 
         Action<T, CodeBuilder> action)
-        where T : ILTypeDefinition
+        where T : LCustomType
     {
-        /*Parallel.ForAsync(0, 5, () =>
-        {
-
-        });*/
-
         foreach (T typeDefinition in typeDefinitons)
         {
             builder.Clear();
+            string fileName = GetFileName(typeDefinition);
             action(typeDefinition, builder);
 
-            yield return new CodeFile(GetFileName(typeDefinition), FileExtension, builder.ToString());
+            yield return new CodeFile(fileName, FileExtension, builder.ToString());
         }
+    }
+
+    protected virtual CodeBuilder CreateCodeBuilder()
+    {
+        return new CodeBuilder(Options.Tab);
     }
 
     protected abstract void MakeClass(LClass @class, CodeBuilder builder);
     protected abstract void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder);
-    protected abstract string GetFileName(ILTypeDefinition typeDefinition);
+    protected abstract string GetFileName(LCustomType customType);
+
+    protected abstract class BaseImportHandler
+    {
+        public abstract bool IsEmpty { get; }
+    }
 }

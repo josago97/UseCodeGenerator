@@ -11,7 +11,7 @@ internal class Program
     {
         string fileContent = File.ReadAllText(EXAMPLE_PATH);
 
-        Language language = Language.Python;
+        Language language = Language.Java;
         CodeGenerator codeGenerator = new CodeGenerator();
         CodeFile[] files = codeGenerator.GenerateCode(fileContent, language);
 

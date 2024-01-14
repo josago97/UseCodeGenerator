@@ -1,17 +1,22 @@
 ﻿@page "/"
 @using System.IO.Compression
+@using Blazor.DownloadFileFast.Interfaces
 @using UseCodeGenerator.Core
 
+<PageTitle>USE to language generator</PageTitle>
+
 <main>
-    <PageTitle>Index</PageTitle>
+    <h1>USE to language generator</h1>
+
+    <p>
+        1. Select or dag and drop an USE file.
+        <br />
+        2. Choose the language programming.
+        <br />
+        3. Press the generate code button.
+    </p>
 
     <UseInputFile OnChange="LoadFile" />
-
-
-    <!--<div class="error-message-container">
-        <p>@ErrorMessage</p>
-    </div>-->
-
 
     <InputSelect @bind-Value=Language>
         <option value="@Language.CSharp">C#</option>
@@ -20,11 +25,11 @@
     </InputSelect>
 
     <button @onclick=GenerateCode>Generate code</button>
-
 </main>
 
 @code {
-    ElementReference fileDropContainer;
+    [Inject]
+    public IBlazorDownloadFileService DownloadFileService { get; set; }
 
     private IBrowserFile File { get; set; }
     private Language Language { get; set; }
@@ -42,13 +47,16 @@
         CodeGenerator generator = new CodeGenerator();
         CodeFile[] files = await generator.GenerateCodeAsync(fileContent, Language);
 
-        await CreateZipFileAsync(files);
+        using MemoryStream stream = new MemoryStream();
+        await CreateZipFileAsync(files, stream);
+
+        string fileName = $"{Path.GetFileNameWithoutExtension(File.Name)}.zip";
+        await DownloadFileService.DownloadFileAsync(fileName, stream.ToArray());
     }
 
-    private async Task CreateZipFileAsync(CodeFile[] files)
+    private async Task CreateZipFileAsync(CodeFile[] files, Stream outStream)
     {
-        using MemoryStream stream = new MemoryStream();
-        using ZipArchive archive = new ZipArchive(new MemoryStream(), ZipArchiveMode.Create);
+        using ZipArchive archive = new ZipArchive(outStream, ZipArchiveMode.Create);
 
         foreach (CodeFile file in files)
         {

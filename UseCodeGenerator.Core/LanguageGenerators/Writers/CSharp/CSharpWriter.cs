@@ -1,28 +1,52 @@
-﻿using System;
-using UseCodeGenerator.Core.LanguageGenerators.Entities;
+﻿using UseCodeGenerator.Core.LanguageGenerators.Entities;
 using UseCodeGenerator.Utilities;
 
-namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
+namespace UseCodeGenerator.Core.LanguageGenerators.Writers.CSharp;
 
-internal class CSharpWriter : LanguageWriter
+internal class CSharpWriter : LanguageWriter<CSharpOptions>
 {
     private const string FILE_EXTENSION = "cs";
 
+    private ImportHandler _imports;
+
     protected override string FileExtension => FILE_EXTENSION;
+
+    #region Class
 
     protected override void MakeClass(LClass @class, CodeBuilder builder)
     {
+        _imports = new ImportHandler();
+
+        CodeBuilder classBuilder = CreateCodeBuilder();
+        WriteClass(@class, classBuilder);
+        string classText = classBuilder.ToStringWithTrim();
+
+        if (!_imports.IsEmpty)
+        {
+            WriteImports(builder);
+            builder.WriteLine();
+        }
+
         WriteNamespace(builder);
         builder.WriteLine();
+        builder.WriteLine(classText);
+    }
+
+    private void WriteClass(LClass @class, CodeBuilder builder)
+    {
         WriteClassHeader(@class, builder);
+
+        builder.WriteLine();
         builder.WriteLine("{");
         builder.AddTab();
-        WriteProperties(@class.Attributes, builder);
-        builder.WriteLine();
-        WriteMethods(@class.Methods, builder);
+
+        CodeBuilder bodyBuilder = CreateCodeBuilder();
+        WriteClassBody(@class, bodyBuilder);
+        string bodyText = bodyBuilder.ToStringWithTrim();
+        builder.WriteLine(bodyText);
+
         builder.RemoveTab();
         builder.WriteLine("}");
-        builder.WriteLine();
     }
 
     private void WriteClassHeader(LClass @class, CodeBuilder builder)
@@ -38,10 +62,22 @@ internal class CSharpWriter : LanguageWriter
 
         if (@class.Parents.Length > 0)
         {
-            builder.Write(" " + string.Join(", ", @class.Parents));
+            builder.Write(" : " + string.Join(", ", @class.Parents));
+        }
+    }
+
+    private void WriteClassBody(LClass @class, CodeBuilder builder)
+    {
+        if (@class.Attributes.Length > 0)
+        {
+            WriteProperties(@class.Attributes, builder);
         }
 
-        builder.WriteLine();
+        if (@class.Methods.Length > 0)
+        {
+            builder.WriteLine();
+            WriteMethods(@class.Methods, builder);
+        }
     }
 
     private void WriteProperties(IEnumerable<LAttribute> attributes, CodeBuilder builder)
@@ -50,12 +86,13 @@ internal class CSharpWriter : LanguageWriter
         {
             string name = attribute.Name.ToPascalCase();
             string type = GetTypeName(attribute.Type);
+            string initValue = GetInitValueText(attribute);
 
             builder.Write($"public {type} {name} {{ get; set; }}");
 
-            if (attribute.InitValue != null)
+            if (!string.IsNullOrEmpty(initValue))
             {
-                builder.Write($" = {attribute.InitValue}");
+                builder.Write($" = {initValue};");
             }
 
             builder.WriteLine();
@@ -66,15 +103,25 @@ internal class CSharpWriter : LanguageWriter
     {
         foreach (LMethod method in methods)
         {
-            string name = method.Name.ToPascalCase();
-            string returnType = GetReturnType(method.ReturnType);
+            string name = method.Name.ToCamelCase();
+            string returnType = GetReturnTypeName(method.ReturnType);
+            string parameters = string.Join(", ", method.Parameters.Select(GetParameter));
 
-            builder.WriteLine($"public {returnType} {name}()");
+            builder.WriteLine($"public {returnType} {name}({parameters})");
             builder.WriteLine("{ }");
+            builder.WriteLine();
         }
     }
 
-    private string GetReturnType(LType type)
+    private string GetParameter(LParameter parameter)
+    {
+        string name = parameter.Name.ToPascalCase();
+        string type = GetTypeName(parameter.Type);
+
+        return $"{type} {name}";
+    }
+
+    private string GetReturnTypeName(LType type)
     {
         return type switch
         {
@@ -83,16 +130,42 @@ internal class CSharpWriter : LanguageWriter
         };
     }
 
+    #endregion
+
+    #region Enumeration
+
     protected override void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder)
     {
         WriteNamespace(builder);
         builder.WriteLine();
-        builder.WriteLine($"public enum {enumeration.Name}");
+        builder.WriteLine($"public enum {enumeration.Name.ToPascalCase()}");
         builder.WriteLine("{");
-        builder.AddTab();
-        builder.WriteLine(string.Join(",\n", enumeration.Values));
-        builder.RemoveTab();
+
+        if (enumeration.Values.Length > 0)
+        {
+            builder.AddTab();
+            builder.WriteLine(string.Join(",\n", enumeration.Values));
+            builder.RemoveTab();
+        }
+
         builder.WriteLine("}");
+    }
+
+    #endregion
+
+    #region Common
+
+    protected override string GetFileName(LCustomType customType)
+    {
+        return customType.Name.ToPascalCase();
+    }
+
+    private void WriteImports(CodeBuilder builder)
+    {
+        foreach (string @namespace in _imports.Namespaces)
+        {
+            builder.WriteLine($"using {@namespace};");
+        }
     }
 
     private void WriteNamespace(CodeBuilder builder)
@@ -102,6 +175,11 @@ internal class CSharpWriter : LanguageWriter
 
     private string GetTypeName(LType type)
     {
+        if (type is LCollectionType)
+        {
+            _imports.AddImport("System.Collections.Generic");
+        }
+
         return type switch
         {
             LPrimitiveType primitive => primitive.Type switch
@@ -112,15 +190,51 @@ internal class CSharpWriter : LanguageWriter
                 LPrimitiveType.Kind.String => "string",
                 _ => throw new Exception($"Unknown type {type}")
             },
-            LCustomType custom => custom.Name,
+            LCustomType custom => custom.Name.ToPascalCase(),
             LCollectionType collection => $"IList<{GetTypeName(collection.Type)}>",
             _ => "object"
         };
     }
 
-    protected override string GetFileName(ILTypeDefinition typeDefinition)
+    private string GetInitValueText(LAttribute attribute)
     {
-        return typeDefinition.Name.ToPascalCase();
+        string result = null;
+        LType type = attribute.Type;
+        object initValue = attribute.InitValue;
+
+        if (type is LCollectionType collectionType)
+        {
+            result = $"new List<{GetTypeName(collectionType.Type)}>()";
+        }
+        else if (initValue != null)
+        {
+            result = initValue switch
+            {
+                string => $"\"{initValue}\"",
+                _ => initValue.ToString()
+            };
+        }
+
+        return result;
+    }
+
+    #endregion
+
+    private class ImportHandler : BaseImportHandler
+    {
+        public HashSet<string> Namespaces { get; }
+
+        public override bool IsEmpty => Namespaces.Count == 0;
+
+        public ImportHandler()
+        {
+            Namespaces = new HashSet<string>();
+        }
+
+        public void AddImport(string @namespace)
+        {
+            Namespaces.Add(@namespace);
+        }
     }
 
     //private 

@@ -1,10 +1,5 @@
 ﻿namespace UseCodeGenerator.Core.LanguageGenerators.Entities;
 
-internal record LCustomType(string Name, LCustomType.Kind Type) : LType
+internal record LCustomType(string Name) : LType
 {
-    public enum Kind
-    {
-        Class,
-        Enumeration
-    }
 }

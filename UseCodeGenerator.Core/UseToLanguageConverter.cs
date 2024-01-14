@@ -5,13 +5,21 @@ namespace UseCodeGenerator.Core;
 
 internal class UseToLanguageConverter
 {
+    private Dictionary<string, LClass> _allClasses;
+    private Dictionary<string, LEnumeration> _allEnumerations;
+
     public LProject Convert(UModel model)
     {
+        _allClasses = new Dictionary<string, LClass>();
+        _allEnumerations = new Dictionary<string, LEnumeration>();
+
         LProject project = new LProject(
             Name: model.Name,
-            Classes: GetClasses(model).ToArray(),
-            Enumerations: GetEnumerations(model).ToArray()
+            Enumerations: GetEnumerations(model).ToArray(),
+            Classes: GetEmptyClasses(model).ToArray()
         );
+
+        FillClassesInDepth(model);
 
         return project;
     }
@@ -20,37 +28,67 @@ internal class UseToLanguageConverter
     {
         foreach (UEnumeration uEnum in model.Enumerations.Values)
         {
+            string enumName = uEnum.Name;
+
             LEnumeration lEnumeration = new LEnumeration(
-                Name: uEnum.Name,
-                Values: uEnum.Values
+                Name: enumName,
+                Values: uEnum.Values.ToArray()
             );
+
+            _allEnumerations.Add(enumName, lEnumeration);
 
             yield return lEnumeration;
         }
     }
 
-    private IEnumerable<LClass> GetClasses(UModel model)
+    private IEnumerable<LClass> GetEmptyClasses(UModel model)
     {
-        IEnumerable<UAssociation> uAllAssociations = model.Associations.Values;
-
         foreach (UClass uClass in model.Classes.Values)
         {
             string className = uClass.Name;
-            IEnumerable<UAssociation.Item> uAssociationItems = GetAssociationItems(className, uAllAssociations);
 
-            LClass lClass = new LClass(
-                Name: className,
-                IsAbstract: uClass.IsAbstract,
-                Parents: uClass.Parents.Select(c => c.Name).ToArray(),
-                Attributes: GetAttributes(uClass.Attributes, uAssociationItems).ToArray(),
-                Methods: GetMethods(uClass.Operations).ToArray()
-            );
+            LClass lClass = new LClass(className);
+
+            _allClasses.Add(className, lClass);
 
             yield return lClass;
         }
     }
 
-    private IEnumerable<LAttribute> GetAttributes(IEnumerable<UAttribute> uAttributes, 
+    private void FillClassesInDepth(UModel model)
+    {
+        IEnumerable<UAssociation> uAllAssociations = model.Associations.Values;
+
+        foreach (string className in model.Classes.Keys)
+        {
+            UClass uClass = model.Classes[className];
+            LClass lClass = _allClasses[className];
+            IEnumerable<UAssociation.Item> uAssociationItems = GetAssociationItems(className, uAllAssociations);
+
+            lClass.IsAbstract = uClass.IsAbstract;
+            lClass.Parents = uClass.Parents.Select(c => c.Name).ToArray();
+            lClass.Attributes = GetAttributes(uClass.Attributes, uAssociationItems).ToArray();
+            lClass.Methods = GetMethods(uClass.Operations).ToArray();
+        }
+    }
+
+    private IEnumerable<UAssociation.Item> GetAssociationItems(string className,
+        IEnumerable<UAssociation> associations)
+    {
+        foreach (UAssociation association in associations)
+        {
+            if (association.Items[0].ClassName == className)
+            {
+                yield return association.Items[1];
+            }
+            else if (association.Items[1].ClassName == className)
+            {
+                yield return association.Items[0];
+            }
+        }
+    }
+
+    private IEnumerable<LAttribute> GetAttributes(IEnumerable<UAttribute> uAttributes,
         IEnumerable<UAssociation.Item> uAssociationItems)
     {
         foreach (UAttribute uAttribute in uAttributes)
@@ -58,7 +96,7 @@ internal class UseToLanguageConverter
             LAttribute lAttribute = new LAttribute(
                 Name: uAttribute.Name,
                 Type: GetType(uAttribute.Type),
-                InitValue: uAttribute.InitValue
+                InitValue: GetInitValue(uAttribute)
             );
 
             yield return lAttribute;
@@ -75,20 +113,30 @@ internal class UseToLanguageConverter
         }
     }
 
-    private IEnumerable<UAssociation.Item> GetAssociationItems(string className, 
-        IEnumerable<UAssociation> associations)
+    private object GetInitValue(UAttribute uAttribute)
     {
-        foreach (UAssociation association in associations)
+        object result = null;
+
+        try
         {
-            if (association.Items[0].Class == className)
+            UType type = uAttribute.Type;
+            string initValue = uAttribute.InitValue;
+
+            if (!string.IsNullOrEmpty(initValue) && type is UPrimitiveType primitive)
             {
-                yield return association.Items[1];
-            }
-            else if (association.Items[1].Class == className)
-            {
-                yield return association.Items[0];
+                result = primitive.Type switch
+                {
+                    UPrimitiveType.Kind.Real => double.Parse(initValue),
+                    UPrimitiveType.Kind.Integer => int.Parse(initValue),
+                    UPrimitiveType.Kind.Boolean => bool.Parse(initValue),
+                    _ => initValue
+                };
             }
         }
+        catch (Exception ex)
+        { }
+
+        return result;
     }
 
     private IEnumerable<LMethod> GetMethods(IEnumerable<UOperation> uOperations)
@@ -98,10 +146,23 @@ internal class UseToLanguageConverter
             LMethod lMethod = new LMethod(
                 Name: uOperation.Name,
                 ReturnType: GetType(uOperation.ReturnType),
-                Parameters: null ?? new LParameter[0]
+                Parameters: GetMethodParameters(uOperation.Parameters).ToArray()
             );
 
             yield return lMethod;
+        }
+    }
+
+    private IEnumerable<LParameter> GetMethodParameters(IEnumerable<UParameter> uParameters)
+    {
+        foreach (UParameter uParameter in uParameters)
+        {
+            LParameter lParameter = new LParameter(
+                Name: uParameter.Name,
+                Type: GetType(uParameter.Type)
+            );
+
+            yield return lParameter;
         }
     }
 
@@ -110,15 +171,15 @@ internal class UseToLanguageConverter
         return uType switch
         {
             UPrimitiveType primitive => new LPrimitiveType((LPrimitiveType.Kind)primitive.Type),
-            UClass => new LCustomType(uType.Name, LCustomType.Kind.Class),
-            UEnumeration => new LCustomType(uType.Name, LCustomType.Kind.Enumeration),
+            UClass => _allClasses[uType.Name],
+            UEnumeration => _allEnumerations[uType.Name],
             _ => null
         };
     }
 
     private LType GetType(UAssociation.Item uAssociationItem)
     {
-        LCustomType classType = new LCustomType(uAssociationItem.Class, LCustomType.Kind.Class);
+        LCustomType classType = _allClasses[uAssociationItem.ClassName];
 
         return uAssociationItem.Multiplicity.IsCollection
             ? new LCollectionType(classType)

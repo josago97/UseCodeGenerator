@@ -5,38 +5,51 @@ namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 internal class CodeBuilder
 {
     private bool _tabEnable = true;
+    private int _tabIndex = 0;
 
-    public int TabIndex { get; private set; }
-    private string Tab { get; init; }
-    private StringBuilder StringBuilder { get; init; }
+    public string Tab { get; private init; }
+    private StringBuilder StringBuilder { get; set; }
 
     public CodeBuilder(string tab)
     {
         Tab = tab;
-        TabIndex = 0;
         StringBuilder = new StringBuilder();
     }
 
     public void AddTab(int count = 1)
     {
-        TabIndex += count;
+        _tabIndex += count;
     }
 
     public void RemoveTab(int count = 1)
     {
-        TabIndex = Math.Max(0, TabIndex - count);
+        _tabIndex = Math.Max(0, _tabIndex - count);
     }
 
     public void Write(string text)
     {
+        string[] lines = text.Split('\n');
+
         if (_tabEnable)
         {
-            for (int i = 0; i < TabIndex; i++)
-                StringBuilder.Append(Tab);
+            WriteTab();
+            _tabEnable = false;
         }
 
-        _tabEnable = false;
-        StringBuilder.Append(text);
+        for (int i = 0; i < lines.Length - 1; i++)
+        {
+            StringBuilder.Append(lines[i] + '\n');
+            WriteTab();
+        }
+
+        string lastLine = lines[lines.Length - 1];        
+        StringBuilder.Append(lastLine);
+    }
+
+    private void WriteTab()
+    {
+        for (int i = 0; i < _tabIndex; i++)
+            StringBuilder.Append(Tab);
     }
 
     public void WriteLine()
@@ -53,14 +66,17 @@ internal class CodeBuilder
 
     public void Clear()
     {
-        TabIndex = 0;
+        _tabIndex = 0;
         StringBuilder.Clear();
     }
 
     public override string ToString()
     {
-        return StringBuilder.ToString()
-            .Replace("\n\n\n", "\n\n")
-            .TrimStart('\n');
+        return StringBuilder.ToString();
+    }
+
+    public string ToStringWithTrim()
+    {
+        return ToString().Trim('\n');
     }
 }

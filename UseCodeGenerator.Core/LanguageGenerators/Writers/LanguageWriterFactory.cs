@@ -1,8 +1,12 @@
-﻿namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
+﻿using UseCodeGenerator.Core.LanguageGenerators.Writers.CSharp;
+using UseCodeGenerator.Core.LanguageGenerators.Writers.Java;
+using UseCodeGenerator.Core.LanguageGenerators.Writers.Python;
+
+namespace UseCodeGenerator.Core.LanguageGenerators.Writers;
 
 internal class LanguageWriterFactory
 {
-    public static LanguageWriter CreateWriter(Language language)
+    public static ILanguageWriter CreateWriter(Language language)
     {
         return language switch
         {

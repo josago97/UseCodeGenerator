@@ -3,23 +3,15 @@
 internal class UOperation : UElement
 {
     public UType ReturnType { get; set; }
+    public HashSet<UParameter> Parameters { get; init; }
 
-    public UOperation() { }
+    public UOperation(string name) : base(name) 
+    {
+        Parameters = new HashSet<UParameter>();
+    }
 
-    public UOperation(string name, UType returnType) : base(name)
+    public UOperation(string name, UType returnType) : this(name)
     {
         ReturnType = returnType;
     }
-
-    /** A list of parameters /
-    private VarDeclList fVarDeclList;
-
-    /** The declared result type (optional) /
-    private Type fResultType;
-
-    /** The operation's body (optional) /
-    private Expression fExpr;
-
-    /** The statement, might be <code>null</code>./
-    private MStatement fStatement;*/
 }
