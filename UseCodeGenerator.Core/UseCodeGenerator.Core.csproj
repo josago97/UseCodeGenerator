@@ -16,7 +16,7 @@
       <_Generated>Use/SyntaxAnalizer</_Generated>
       <_Namespace>UseCodeGenerator.Core.Use.SyntaxAnalizer</_Namespace>
   	</PropertyGroup>
-	<Exec Command="rm -f &quot;$(_Generated)&quot;" Condition="$([MSBuild]::IsOSUnixLike())" />
+	<Exec Command="rm -f &quot;$(_Generated)&quot;/*" Condition="$([MSBuild]::IsOSUnixLike())" />
 	<Exec Command="ls &quot;$(_Generated)&quot;" Condition="$([MSBuild]::IsOSUnixLike())" />
   	<Exec Command="dotnet antlr4-tool -Dlanguage=CSharp  -o &quot;$(_Generated)&quot; -visitor -package $(_Namespace)  &quot;$(_GrammarFile)&quot;" />
   </Target>
