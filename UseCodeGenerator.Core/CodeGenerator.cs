@@ -13,6 +13,10 @@ public class CodeGenerator
     {
         UModel useModel = UseReader.Read(useCode);
 
+        //Thread.Sleep(50000);
+
+        //throw new Exception();
+
         UseToLanguageConverter converter = new UseToLanguageConverter();
         LProject project = converter.Convert(useModel);
 

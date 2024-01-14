@@ -24,10 +24,12 @@
         <option value="@Language.Python">Python</option>
     </InputSelect>
 
-    <button @onclick=GenerateCode>Generate code</button>
+    <button @onclick=GenerateCodeAsync>Generate code</button>
 </main>
 
 @code {
+    private const string USE_EXTENSION = "use";
+
     [Inject]
     public IBlazorDownloadFileService DownloadFileService { get; set; }
 
@@ -39,17 +41,26 @@
         File = args.File;
     }
 
-    private async void GenerateCode()
+    private async Task GenerateCodeAsync()
     {
+        string fileExtenson = Path.GetExtension(File.Name);
+
+        if (!fileExtenson.Equals(USE_EXTENSION, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Console.WriteLine("Leo archivo");
         using StreamReader fileReader = new StreamReader(File.OpenReadStream());
         string fileContent = await fileReader.ReadToEndAsync();
 
+        Console.WriteLine("Genero archivos de codigo");
         CodeGenerator generator = new CodeGenerator();
         CodeFile[] files = await generator.GenerateCodeAsync(fileContent, Language);
 
+        Console.WriteLine("Comprimo archivos");
         using MemoryStream stream = new MemoryStream();
         await CreateZipFileAsync(files, stream);
 
+        Console.WriteLine("Descargo archivo comprimido");
         string fileName = $"{Path.GetFileNameWithoutExtension(File.Name)}.zip";
         await DownloadFileService.DownloadFileAsync(fileName, stream.ToArray());
     }
