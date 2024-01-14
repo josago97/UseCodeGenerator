@@ -24,7 +24,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.X
-        
+
+    # Install tools
+    - name: Install tools
+      run: dotnet tool restore
+      
      # Install wasm-tools
     - name: Install wasm-tools
       run: dotnet workload install wasm-tools
