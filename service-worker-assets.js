@@ -61,7 +61,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-pG+gVyI6EktyzgBEXKk67YaJBdw\/Duc4mIh\/dzJKMyk=",
+      "hash": "sha256-7mdN0nH04KczOcm6+pxFMDIKmmmZuf\/gIi4zNyBOAXs=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -69,7 +69,7 @@
       "url": "_framework\/dotnet.native.8.0.1.ego0l4hba4.js"
     },
     {
-      "hash": "sha256-IbjvcuX9pq3PvSUpESV2Da0ppvdZQiR\/9J6toleyX7k=",
+      "hash": "sha256-H7Hl\/puljVjcDIOjPrp1aM\/svpKBlKMWTD03OM3kRls=",
       "url": "_framework\/dotnet.native.wasm"
     },
     {
@@ -85,7 +85,7 @@
       "url": "_framework\/Microsoft.AspNetCore.Components.Forms.wasm"
     },
     {
-      "hash": "sha256-UasIrWgFRYl9RNLaenEg+EaynykTHytkytquBcLv\/08=",
+      "hash": "sha256-xMxLr4m6mMWNINqFumM1d8MNMiPoNCqhr2v20XwWd9k=",
       "url": "_framework\/Microsoft.AspNetCore.Components.wasm"
     },
     {
@@ -205,7 +205,7 @@
       "url": "_framework\/System.ObjectModel.wasm"
     },
     {
-      "hash": "sha256-btYyw6l8psGb1JvE\/b1RX72LCe\/yOcbQnGPcLWu2Q6M=",
+      "hash": "sha256-RV5QjHHElCnDTLGzSsdg1Rb5jiKp\/YczhD9rPekFY\/Q=",
       "url": "_framework\/System.Private.CoreLib.wasm"
     },
     {
@@ -221,7 +221,7 @@
       "url": "_framework\/System.Runtime.Serialization.Primitives.wasm"
     },
     {
-      "hash": "sha256-Cw1DAVisyBrm3cu7d62UO551nBAvz52cSWYzXe6afQU=",
+      "hash": "sha256-Xx\/1wAX8K3q5XnaRznHLpVa\/IfbKF2lZG4TnFSkTRxk=",
       "url": "_framework\/System.Runtime.wasm"
     },
     {
@@ -241,11 +241,11 @@
       "url": "_framework\/System.wasm"
     },
     {
-      "hash": "sha256-\/CjqfP15hPs9b5pHkDssxWDiMh8WtuHYcKR7tEl6rUE=",
+      "hash": "sha256-4fCt+Py\/zTi0Uy\/INabOyHrxr9nNlmQTe3rMt\/tZCVE=",
       "url": "_framework\/UseCodeGenerator.Core.wasm"
     },
     {
-      "hash": "sha256-FCvYDGtu\/z6pJ+Vt0GR4Ca4W0gcIrc7juz1tvppZZrc=",
+      "hash": "sha256-M38ZgSjsie8qNE7JI24K3oIUFxl4jSCua1RcBzPCvKU=",
       "url": "_framework\/UseCodeGenerator.WebApp.wasm"
     },
     {
@@ -257,5 +257,5 @@
       "url": "_content\/BlazorDownloadFileFast\/download7up.js"
     }
   ],
-  "version": "Qqw\/Ffsh"
+  "version": "Qj+Kq\/5t"
 };
