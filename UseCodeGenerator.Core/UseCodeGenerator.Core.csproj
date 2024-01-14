@@ -10,11 +10,12 @@
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
   </ItemGroup>
 
-  <Target Name="GenerateAntlrArtifacts" BeforeTargets="BeforeResolveReferences">
+  <Target Name="GenerateAntlrArtifacts" BeforeTargets="BeforeResolveReferences" Condition="'$(EnableAntlrGeneration)' == 'true'">
   	<PropertyGroup>
       <_GrammarFile>Assets/Use.g4</_GrammarFile>
       <_Generated>Use/SyntaxAnalizer</_Generated>
       <_Namespace>UseCodeGenerator.Core.Use.SyntaxAnalizer</_Namespace>
+	  <EnableAntlrGeneration Condition="'$(EnableAntlrGeneration)' != 'false'">true</EnableAntlrGeneration>
   	</PropertyGroup>
 	<!--<Exec Command="rm -f &quot;$(_Generated)&quot;/*" Condition="$([MSBuild]::IsOSUnixLike())" />
 	<Exec Command="ls &quot;$(_Generated)&quot;" Condition="$([MSBuild]::IsOSUnixLike())" />-->
