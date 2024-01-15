@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "UseCodeGenerator.WebApp",
   "resources": {
-    "hash": "sha256-ni1TaNH+I5QseX0rYYGyE+ACNarNfetL1iBnKTBeyS4=",
+    "hash": "sha256-TNikIOXl9NRafSBqA7lZ0i1NKbBjKyv8gvE209mHDaE=",
     "jsModuleNative": {
       "dotnet.native.8.0.1.ego0l4hba4.js": "sha256-oaSHr/9zGfpR+8xozBNQVb7dthO/KL10Y07SXpRuJ78="
     },
@@ -9,7 +9,7 @@
       "dotnet.runtime.8.0.1.jvv0ztohpa.js": "sha256-HZOoaGpz9ekMa/oSmeApSKp3DXNdVUq2UBqsTIIiN8A="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-rR1CM0h3Dxl0Y0ElP8WwGUq2dOhSJZrPKDgBvnCpLGM="
+      "dotnet.native.wasm": "sha256-/lbyULs3saJCYHEaozlwPIFD59XhQm3WUkMSpmQlRmE="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
