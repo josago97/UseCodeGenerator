@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Data.Common;
-using System.Drawing;
 using UseCodeGenerator.Core.LanguageGenerators.Entities;
 using UseCodeGenerator.Utilities;
 
@@ -13,6 +11,8 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
     private ImportHandler _imports;
 
     protected override string FileExtension => FILE_EXTENSION;
+
+    #region Class
 
     protected override void MakeClass(LClass @class, CodeBuilder builder)
     {
@@ -74,7 +74,8 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
             AttributeInfo[] attributesInfo = @class.Attributes.Select(a => new AttributeInfo
             (
                 Name: a.Name.ToCamelCase(),
-                Type: GetTypeName(a.Type)
+                Type: GetTypeName(a.Type),
+                InitValue: GetInitValueText(a)
             ))
             .ToArray();
 
@@ -95,8 +96,16 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
         {
             string name = attribute.Name;
             string type = attribute.Type;
+            string initValue = attribute.InitValue;
 
-            builder.WriteLine($"private {type} {name};");
+            builder.Write($"private {type} {name}");
+
+            if (!string.IsNullOrEmpty(initValue))
+            {
+                builder.Write($" = {initValue}");
+            }
+
+            builder.WriteLine(";");
         }
     }
 
@@ -160,6 +169,10 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
         };
     }
 
+    #endregion
+
+    #region Enumeration
+
     protected override void MakeEnumeration(LEnumeration enumeration, CodeBuilder builder)
     {
         WritePackage(builder);
@@ -176,7 +189,14 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
         builder.WriteLine("}");
     }
 
+    #endregion
+
     #region Common
+
+    protected override string GetFileName(LCustomType customType)
+    {
+        return customType.Name.ToPascalCase();
+    }
 
     private void WriteImports(CodeBuilder builder)
     {
@@ -214,9 +234,26 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
         };
     }
 
-    protected override string GetFileName(LCustomType customType)
+    private string GetInitValueText(LAttribute attribute)
     {
-        return customType.Name.ToPascalCase();
+        string result = null;
+        LType type = attribute.Type;
+        object initValue = attribute.InitValue;
+
+        if (type is LCollectionType collectionType)
+        {
+            result = $"new ArrayList<{GetTypeName(collectionType.Type)}>()";
+        }
+        else if (initValue != null)
+        {
+            result = initValue switch
+            {
+                string => $"\"{initValue}\"",
+                _ => initValue.ToString()
+            };
+        }
+
+        return result;
     }
 
     #endregion
@@ -282,7 +319,7 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
         return stringBuilder.ToString();
     }*/
 
-    private record AttributeInfo(string Name, string Type);
+    private record AttributeInfo(string Name, string Type, string InitValue);
 
     private class ImportHandler : BaseImportHandler
     {

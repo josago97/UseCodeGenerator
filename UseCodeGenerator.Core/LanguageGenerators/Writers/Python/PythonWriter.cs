@@ -1,4 +1,6 @@
-﻿using UseCodeGenerator.Core.LanguageGenerators.Entities;
+﻿using System.Text;
+using Microsoft.VisualBasic;
+using UseCodeGenerator.Core.LanguageGenerators.Entities;
 using UseCodeGenerator.Utilities;
 
 namespace UseCodeGenerator.Core.LanguageGenerators.Writers.Python;
@@ -64,23 +66,34 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
 
     private void WriteClassBody(LClass @class, CodeBuilder builder)
     {
-        CodeBuilder constructorBuilder = CreateCodeBuilder();
-        WriteConstructor(@class, constructorBuilder);
-        string constructorText = constructorBuilder.ToStringWithTrim();
+        bool hasContent = false;
 
-        CodeBuilder methodsBuilder = CreateCodeBuilder();
-        WriteMethods(@class.Methods, methodsBuilder);
-        string methodsText = methodsBuilder.ToStringWithTrim();
-
-        if (!string.IsNullOrEmpty(constructorText))
+        if (@class.Attributes.Length > 0)
         {
-            builder.WriteLine(constructorText);
+            hasContent = true;
+
+
+            WriteConstructor(@class, builder);
+            /*CodeBuilder constructorBuilder = CreateCodeBuilder();
+            WriteConstructor(@class, constructorBuilder);
+            string constructorText = constructorBuilder.ToStringWithTrim();
+            builder.WriteLine(constructorText);*/
         }
 
-        if (!string.IsNullOrEmpty(methodsText))
+        if (@class.Methods.Length > 0)
         {
-            builder.WriteLine();
-            builder.WriteLine(methodsText);
+            hasContent = true;
+
+            WriteMethods(@class.Methods, builder);
+            /*CodeBuilder methodsBuilder = CreateCodeBuilder();
+            WriteMethods(@class.Methods, methodsBuilder);
+            string methodsText = methodsBuilder.ToStringWithTrim();
+            builder.WriteLine(methodsText);*/
+        }
+
+        if (!hasContent)
+        {
+            builder.WriteLine("pass");
         }
     }
 
@@ -92,32 +105,52 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
             builder.WriteLine("@abstractmethod");
         }
 
-        builder.WriteLine("def __init__(self) -> None:");
+        AttributeInfo[] attributesInfo = @class.Attributes.Select(a => new AttributeInfo
+        (
+            Name: a.Name.ToSnakeCase(),
+            Type: GetTypeName(a.Type),
+            InitValue: GetInitValueText(a),
+            IsCollection: a.Type is LCollectionType
+        ))
+        .ToArray();
+
+        // Write constructor header
+        builder.Write("def __init__(self");
+
+        // Write constructor parameters
+        foreach (AttributeInfo attribute in attributesInfo)
+        {
+            string name = attribute.Name;
+            string type = attribute.Type;
+            string initValue = attribute.InitValue;
+
+            builder.Write($", {attribute.Name}: {attribute.Type}");
+
+            if (string.IsNullOrEmpty(initValue))
+            {
+                builder.Write(" | None = None");
+            }
+            else
+            {
+                builder.Write($" = {initValue}");
+            }
+        }
+
+        builder.WriteLine(") -> None:");
+
         builder.AddTab();
 
-        if (@class.Attributes.Length == 0)
+        // Write constructor body
+        foreach (AttributeInfo attribute in attributesInfo)
         {
-            builder.WriteLine("pass");
-        }
-        else
-        {
-            foreach (LAttribute attribute in @class.Attributes)
+            builder.Write($"self.{attribute.Name} = {attribute.Name}");
+
+            if (attribute.IsCollection)
             {
-                string name = attribute.Name.ToSnakeCase();
-                string type = GetReturnTypeName(attribute.Type);
-                string initValue = GetInitValueText(attribute);
-
-                builder.Write($"self.{name}: {type}");
-
-                if (string.IsNullOrEmpty(initValue))
-                {
-                    builder.WriteLine(" | None = None");
-                }
-                else
-                {
-                    builder.WriteLine($" = {initValue}");
-                }
+                builder.Write(" or []");
             }
+
+            builder.WriteLine();
         }
 
         builder.RemoveTab();
@@ -260,11 +293,7 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
         LType type = attribute.Type;
         object initValue = attribute.InitValue;
 
-        if (type is LCollectionType)
-        {
-            result = "[]";
-        }
-        else if (initValue != null)
+        if (initValue != null && type is not LCollectionType)
         {
             result = initValue switch
             {
@@ -279,6 +308,8 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
     }
 
     #endregion
+
+    private record AttributeInfo(string Name, string Type, string InitValue, bool IsCollection);
 
     private class ImportHandler : BaseImportHandler
     {
