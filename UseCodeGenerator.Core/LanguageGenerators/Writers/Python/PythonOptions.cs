@@ -2,4 +2,5 @@
 
 internal class PythonOptions : LanguageOptions
 {
+    public bool EnableTypeHinting { get; set; } = false;
 }

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.VisualBasic;
+﻿using System.Reflection.Metadata;
 using UseCodeGenerator.Core.LanguageGenerators.Entities;
 using UseCodeGenerator.Utilities;
 
@@ -40,7 +39,10 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
         builder.WriteLine(":");
         builder.AddTab();
 
-        WriteClassBody(@class, builder);
+        CodeBuilder bodyBuilder = CreateCodeBuilder();
+        WriteClassBody(@class, bodyBuilder);
+        string bodyText = bodyBuilder.ToStringWithTrim();
+        builder.WriteLine(bodyText);
 
         builder.RemoveTab();
     }
@@ -72,23 +74,15 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
         {
             hasContent = true;
 
-
             WriteConstructor(@class, builder);
-            /*CodeBuilder constructorBuilder = CreateCodeBuilder();
-            WriteConstructor(@class, constructorBuilder);
-            string constructorText = constructorBuilder.ToStringWithTrim();
-            builder.WriteLine(constructorText);*/
         }
 
         if (@class.Methods.Length > 0)
         {
             hasContent = true;
 
+            builder.WriteLine();
             WriteMethods(@class.Methods, builder);
-            /*CodeBuilder methodsBuilder = CreateCodeBuilder();
-            WriteMethods(@class.Methods, methodsBuilder);
-            string methodsText = methodsBuilder.ToStringWithTrim();
-            builder.WriteLine(methodsText);*/
         }
 
         if (!hasContent)
@@ -105,43 +99,21 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
             builder.WriteLine("@abstractmethod");
         }
 
-        AttributeInfo[] attributesInfo = @class.Attributes.Select(a => new AttributeInfo
+        AttributeInfo[] attributes = @class.Attributes.Select(a => new AttributeInfo
         (
             Name: a.Name.ToSnakeCase(),
-            Type: GetTypeName(a.Type),
-            InitValue: GetInitValueText(a),
-            IsCollection: a.Type is LCollectionType
+            Type: a.Type,
+            InitValue: GetInitValueText(a)
         ))
         .ToArray();
 
         // Write constructor header
-        builder.Write("def __init__(self");
-
-        // Write constructor parameters
-        foreach (AttributeInfo attribute in attributesInfo)
-        {
-            string name = attribute.Name;
-            string type = attribute.Type;
-            string initValue = attribute.InitValue;
-
-            builder.Write($", {attribute.Name}: {attribute.Type}");
-
-            if (string.IsNullOrEmpty(initValue))
-            {
-                builder.Write(" | None = None");
-            }
-            else
-            {
-                builder.Write($" = {initValue}");
-            }
-        }
-
-        builder.WriteLine(") -> None:");
+        WriteMethodHeader("__init__", null, attributes, builder);
 
         builder.AddTab();
 
         // Write constructor body
-        foreach (AttributeInfo attribute in attributesInfo)
+        foreach (AttributeInfo attribute in attributes)
         {
             builder.Write($"self.{attribute.Name} = {attribute.Name}");
 
@@ -161,20 +133,59 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
         foreach (LMethod method in methods)
         {
             string name = method.Name.ToSnakeCase();
-            string returnType = GetReturnTypeName(method.ReturnType);
-            string parameters = string.Join(", ", 
-            [
-                "self",
-                .. method.Parameters.Select(p =>
-                    $"{p.Name.ToSnakeCase()}: {GetTypeName(p.Type)}")
-            ]);
+            ParameterInfo[] parameters = method.Parameters.Select(a => new ParameterInfo
+            (
+                Name: a.Name.ToSnakeCase(),
+                Type: a.Type
+            ))
+            .ToArray();
 
-            builder.WriteLine($"def {name}({parameters}) -> {returnType}:");
+            WriteMethodHeader(name, method.ReturnType, parameters, builder);
+
             builder.AddTab();
             builder.WriteLine("pass");
             builder.RemoveTab();
             builder.WriteLine();
         }
+    }
+
+    private void WriteMethodHeader(string name, LType returnType, ParameterInfo[] parameters, CodeBuilder builder)
+    {
+        builder.Write($"def {name}(self");
+
+        // Write parameters
+        foreach (ParameterInfo parameter in parameters)
+        {
+            string defaultValue = parameter.InitValue;
+
+            builder.Write($", {parameter.Name}");
+
+            if (Options.EnableTypeHinting)
+            {
+                string typeName = GetTypeName(parameter.Type);
+                builder.Write($": {typeName}");
+
+                if (string.IsNullOrEmpty(defaultValue))
+                {
+                    builder.Write(" | None");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(defaultValue))
+            {
+                builder.Write($" = {defaultValue}");
+            }
+        }
+
+        builder.Write(")");
+
+        if (Options.EnableTypeHinting)
+        {
+            string returnTypeName = GetReturnTypeName(returnType);
+            builder.Write($" -> {returnTypeName}");
+        }
+
+        builder.WriteLine(":");
     }
 
     private string GetReturnTypeName(LType type)
@@ -299,6 +310,7 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
             {
                 true => "True",
                 false => "False",
+                int or double => "0",
                 string => $"'{initValue}'",
                 _ => initValue.ToString()
             };
@@ -309,7 +321,13 @@ internal class PythonWriter : LanguageWriter<PythonOptions>
 
     #endregion
 
-    private record AttributeInfo(string Name, string Type, string InitValue, bool IsCollection);
+    private record ParameterInfo(string Name, LType Type, string InitValue = null);
+
+    private record AttributeInfo(string Name, LType Type, string InitValue)
+        : ParameterInfo(Name, Type, InitValue)
+    {
+        public bool IsCollection => Type is LCollectionType;
+    }
 
     private class ImportHandler : BaseImportHandler
     {
