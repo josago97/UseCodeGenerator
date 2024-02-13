@@ -130,7 +130,7 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
             builder.WriteLine();
 
             // Setter
-            builder.WriteLine($"public {type} set{attributeNamePascal}({type} {attributeName}) {{");
+            builder.WriteLine($"public void set{attributeNamePascal}({type} {attributeName}) {{");
             builder.AddTab();
             builder.WriteLine($"this.{attributeName} = {attributeName};");
             builder.RemoveTab();
@@ -146,8 +146,8 @@ internal class JavaWriter : LanguageWriter<JavaOptions>
             string returnType = GetReturnTypeName(method.ReturnType);
             string parameters = string.Join(", ", method.Parameters.Select(GetParameter));
 
-            builder.WriteLine($"public {returnType} {name}({parameters})");
-            builder.WriteLine("{ }");
+            builder.WriteLine($"public {returnType} {name}({parameters}) {{");
+            builder.WriteLine("}");
             builder.WriteLine();
         }
     }

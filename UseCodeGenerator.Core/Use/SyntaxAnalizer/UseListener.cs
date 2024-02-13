@@ -132,6 +132,46 @@ public interface IUseListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitOperationBody([NotNull] UseParser.OperationBodyContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStatement([NotNull] UseParser.StatementContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStatement([NotNull] UseParser.StatementContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.conditional"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterConditional([NotNull] UseParser.ConditionalContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.conditional"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitConditional([NotNull] UseParser.ConditionalContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.pre"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterPre([NotNull] UseParser.PreContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.pre"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitPre([NotNull] UseParser.PreContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.post"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterPost([NotNull] UseParser.PostContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.post"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitPost([NotNull] UseParser.PostContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="UseParser.enumeration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

@@ -5,13 +5,14 @@ namespace UseCodeGenerator.ConsoleApp;
 internal class Program
 {
     //const string EXAMPLE_PATH = @"Examen1.use";
-    const string EXAMPLE_PATH = @"Example2.use";
+    //const string EXAMPLE_PATH = @"Example2.use";
+    const string EXAMPLE_PATH = @"Practica3.use";
 
     static void Main(string[] args)
     {
         string fileContent = File.ReadAllText(EXAMPLE_PATH);
 
-        Language language = Language.Python;
+        Language language = Language.Java;
         CodeGenerator codeGenerator = new CodeGenerator();
         CodeFile[] files = codeGenerator.GenerateCode(fileContent, language);
 

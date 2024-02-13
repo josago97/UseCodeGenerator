@@ -28,7 +28,7 @@ className: ID;
 inheritance: LT className (',' className)*;
 
 attribute:
-	ID ':' type ('init' '=' typeLiteral SEMICOLON)?;
+	ID ':' type ('init' '=' typeLiteral ';')?;
 
 operation:
 	ID '(' (parameter ','?)* ')' (':' type)?
@@ -39,9 +39,30 @@ parameter:
 	ID ':' type;
 
 operationBody: 
-BEGIN 
-(~('end') | '.')*
-END;
+	BEGIN 
+		statement*
+	END
+	pre*
+	post*;
+
+statement
+	: conditional
+	| (~(END))+
+	//| (~(END) | [-+/%<>])+
+	;
+	//(~(END) | '->' | '.' )+;
+	//(~END | ' ' | [.-+/%<>:=();])*
+	
+
+conditional:
+	'if' '('? statement ')'? 'then' statement* ('else' statement*)?  END ';';
+
+
+pre:
+	'pre:' statement;
+
+post:
+	'post:' statement;
 
 /* ====== Enumeration ====== */
 
@@ -52,7 +73,7 @@ enumerationName: ID;
 
 enumerationLiteral: ID;
 
-/* ====== Other ====== */
+/* ====== Types ====== */
 
 type: simpleType | enumerationName;
 
@@ -103,7 +124,6 @@ LT: '<';
 MODEL: 'model';
 OPERATIONS: 'operations';
 ROLE: 'role';
-SEMICOLON: ';';
 
 // Primitive types
 BOOLEAN: 'Boolean';
@@ -121,5 +141,15 @@ NUMBER: [0-9]+;
 ID: [A-Za-z_][A-Za-z0-9_]*;
 
 // Ignore
-COMMENT: '#'~[\r\n]* -> skip;
+COMMENT: (
+    '#' ~[\r\n]*
+    | '//' .*?
+    | '/*' .*? '*/'
+    ) -> skip;
 WS: [ \t\r\n]+ -> skip;
+OTHER: . -> skip;
+
+
+
+
+

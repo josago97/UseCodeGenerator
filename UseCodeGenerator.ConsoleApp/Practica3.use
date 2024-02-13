@@ -1,0 +1,275 @@
+model Renfe
+
+abstract class ComponenteDeRed
+attributes
+	nTrenes : Integer
+	
+operations
+	actualizaTrenes()
+		begin
+			self.nTrenes := self.tren->size()
+		end
+end
+
+class Estacion < ComponenteDeRed
+attributes
+	nombre : String
+	
+operations
+	actSiguienteEnSalir()
+		begin
+			if(self.sigSalir->isEmpty and self.tren->size() > 0) then insert (self.tren->first(), self) into ordenTrenEstacion end;
+		end
+
+	entraTren(tren : Tren)
+		begin
+			insert (tren, self) into trenPosicion;
+			self.actSiguienteEnSalir();
+			self.actualizaTrenes()
+		end
+		
+	saleTren(tren : Tren)
+		begin
+			delete (tren, self) from trenPosicion;
+			delete (tren, self) from ordenTrenEstacion;
+			self.viaEste.primero.entraTren(tren);
+			self.actSiguienteEnSalir();
+			self.actualizaTrenes()
+		end
+		pre: self.sigSalir->includes(tren) //El siguiente en salir es tren
+		pre: self.viaEste.primero.nTrenes = 0 //El primer tramo de la viaEste está libre
+end
+
+class Tramo < ComponenteDeRed
+attributes
+
+operations
+	entraTren(tren : Tren)
+		begin
+			insert (tren, self) into trenPosicion;
+			self.actualizaTrenes();
+			if(self.viap->size() > 0) then self.viap.actualizaTrenes() end;
+			if(self.viainter->size() > 0) then self.viainter.actualizaTrenes() end;
+			if(self.viau->size() > 0) then self.viau.actualizaTrenes() end;
+		end
+		pre: self.tren->isEmpty() //No hay trenes
+		post: self.tren = self.tren@pre->including(tren) //Esta el tren en la relacion
+		
+	saleTren(tren : Tren)
+		begin
+			delete (tren, self) from trenPosicion;
+			self.actualizaTrenes();
+			if(self.viap->size() > 0) then self.viap.actualizaTrenes() end;
+			if(self.viainter->size() > 0) then self.viainter.actualizaTrenes() end;
+			if(self.viau->size() > 0) then self.viau.actualizaTrenes() end;
+		end
+		pre: self.tren->first() = tren //Esta el tren en la relacion y en primera posicion
+		post: self.tren->isEmpty() //No hay trenes
+end
+
+class Via
+attributes
+	nTrenes : Integer
+	nombre : String
+	
+operations
+	actualizaTrenes()
+		begin
+			if self.inter->isEmpty() then
+				self.nTrenes := self.primero.nTrenes + self.ultimo.nTrenes
+			else
+				self.nTrenes := self.primero.nTrenes + self.inter.nTrenes + self.ultimo.nTrenes
+			end
+		end
+end
+
+class Tren
+attributes
+	posicion : String
+	
+operations
+	actualizaPosicion()
+		begin
+			if self.posicionTren.oclIsTypeOf(Estacion) then
+				self.posicion := self.posicionTren.oclAsType(Estacion).nombre
+			else
+				if not self.posicionTren.oclAsType(Tramo).viap->isEmpty() then self.posicion := self.posicionTren.oclAsType(Tramo).viap.nombre end;
+				if not self.posicionTren.oclAsType(Tramo).viainter->isEmpty() then self.posicion := self.posicionTren.oclAsType(Tramo).viainter.nombre end;
+				if not self.posicionTren.oclAsType(Tramo).viau->isEmpty() then self.posicion := self.posicionTren.oclAsType(Tramo).viau.nombre end;
+			end
+		end
+	
+	meMuevo()
+		begin
+			if self.posicionTren.oclIsTypeOf(Estacion) then
+				self.posicionTren.oclAsType(Estacion).saleTren(self);
+			else
+				declare tramo : Tramo;
+				tramo := self.posicionTren.oclAsType(Tramo);
+				if(not tramo.teste->isEmpty()) then
+					tramo.saleTren(self);
+					tramo.teste.entraTren(self);
+				else					
+					tramo.saleTren(self);
+					tramo.viau.estacionEste.entraTren(self);
+				end	
+			end;
+			self.actualizaPosicion();
+		end
+end
+
+------------Asociacionees-------------
+
+//3
+association estacionViaEste between
+  Via [1] role viaEste
+  Estacion [1] role estacionOeste
+end
+
+association estacionViaOeste between
+  Via [1] role viaOeste
+  Estacion [1] role estacionEste
+end
+
+//5.a
+composition tramoPrimero between
+  Via [0..1] role viap
+  Tramo [1] role primero
+end 
+
+composition tramoIntermedio between
+  Via [0..1] role viainter
+  Tramo [0..1] role inter
+end 
+
+composition tramoUltimo between
+  Via [0..1] role viau
+  Tramo [1] role ultimo
+end 
+
+//5.b
+association tramoPosicion between
+  Tramo [0..1] role toeste
+  Tramo [0..1] role teste
+end
+
+//5.c
+association trenPosicion between
+  Tren [*] role tren ordered
+  ComponenteDeRed [1] role posicionTren
+end 
+
+//1.2 Fase2 
+association ordenTrenEstacion between
+	Tren [0..1] role sigSalir
+	Estacion [0..1] role estacion
+end
+
+----------Restricciones-------------
+
+constraints
+
+---------- Ejercicio 1 ----------
+
+context Estacion
+//1.a 
+//Ya se contempla en la multiplicidad de la relación estacionViaEste y estacionViaOeste
+inv UnaViaEsteOeste: 
+self.viaEste -> notEmpty() and self.viaOeste -> notEmpty()
+
+context Via
+//1.b
+inv DistintasEstaciones: 
+self.estacionOeste <> self.estacionEste
+
+//1.c
+inv UnicoPrimerUltimo: 
+self.primero <> self.ultimo
+
+//1.d
+inv NoTramoOestePrimero:  
+self.primero.toeste.oclIsUndefined() and not self.primero.teste.oclIsUndefined()
+inv NoTramoEsteUltimo:  
+self.ultimo.teste.oclIsUndefined() and not self.ultimo.toeste.oclIsUndefined()
+inv TramoOesteEsteIntermedio:  
+self.inter->notEmpty() implies (not self.inter.toeste.oclIsUndefined() and not self.inter.teste.oclIsUndefined())
+
+//Aseguramos que los dos tramos pertenecen a la misma vía
+inv TramoOesteEsteMismaVia:
+(self.primero.teste = self.inter or self.primero.teste = self.ultimo) and (self.ultimo.toeste = self.inter or self.ultimo.toeste = self.primero)
+
+//1.e
+inv TramoIntermedioConectado:
+self.inter -> size() <= 1 and (self.inter -> notEmpty() implies (self.inter.teste = self.ultimo and self.inter.toeste = self.primero))
+
+context Tramo
+//1.f
+inv TramoSoloUnaVia:
+self.viap->size() + self.viainter->size() + self.viau->size() = 1
+
+---------- Ejercicio 2 ----------
+context Via
+//2.a
+inv ViasNombresDiferentes: 
+Via.allInstances() -> forAll(v1, v2 | v1 <> v2 implies v1.nombre <> v2.nombre)
+
+context Estacion
+//2.b
+inv EstacionesNombresDiferentes:
+Estacion.allInstances() -> forAll(e1, e2 | e1 <> e2 implies e1.nombre <> e2.nombre)
+
+//2.c
+inv EstacionNumeroTrenes:
+self.nTrenes = self.tren -> size()
+
+context Tramo
+//2.d
+inv TramoUnTren:
+self.tren -> size() <= 1
+
+//2.e
+inv TramoNumeroTrenes:
+self.nTrenes = self.tren -> size()
+
+context Via
+//2.f
+inv ViaNumeroTrenes:
+if self.inter->isEmpty() then
+	self.nTrenes = self.primero.nTrenes + self.ultimo.nTrenes
+else
+	self.nTrenes = self.primero.nTrenes + self.inter.nTrenes + self.ultimo.nTrenes
+endif
+
+context Tren
+//2.g
+inv TrenEstacionTramo:
+self.posicionTren -> size() = 1 and (self.posicionTren.oclIsTypeOf(Tramo) or self.posicionTren.oclIsTypeOf(Estacion))
+
+//2.h
+inv PosicionTrenCoincide:
+if self.posicionTren.oclIsTypeOf(Estacion)
+then
+	self.posicion = self.posicionTren.oclAsType(Estacion).nombre
+else
+	(self.posicionTren.oclAsType(Tramo).viap->notEmpty() implies self.posicion = self.posicionTren.oclAsType(Tramo).viap.nombre)
+	and 
+	(self.posicionTren.oclAsType(Tramo).viau->notEmpty() implies self.posicion = self.posicionTren.oclAsType(Tramo).viau.nombre)
+	and
+	(self.posicionTren.oclAsType(Tramo).viainter->notEmpty() implies self.posicion = self.posicionTren.oclAsType(Tramo).viainter.nombre)
+endif
+
+context Estacion
+//2.1 Fase2
+inv PrimeroEnSalir:
+//self.sigSalir = self.tren->first()
+//self.sigSalir->size() = 1 implies self.sigSalir = self.tren->first()
+self.tren->includes(self.sigSalir) //and self.tren->size() > 0 implies self.sigSalir = self.tren->first()
+//(self.sigSalir->size() > 0 or  self.tren->size() > 0) implies self.sigSalir = self.tren->first() and self.tren->size() > 0
+
+context Tren
+inv PrimeroEnSalir2: //Invariante anterior a través del tren (visto en tutoría el día 31/01/19)
+self.estacion -> size() > 0 implies (self.estacion.tren ->first() = self implies self.estacion.sigSalir = self)
+
+/*context Estacion
+inv MasTrenes:
+Estacion.allInstances -> exists(e | e.tren -> size() >= 2)*/

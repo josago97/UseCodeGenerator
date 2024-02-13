@@ -157,6 +157,54 @@ public partial class UseBaseListener : IUseListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitOperationBody([NotNull] UseParser.OperationBodyContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.statement"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterStatement([NotNull] UseParser.StatementContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.statement"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitStatement([NotNull] UseParser.StatementContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.conditional"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterConditional([NotNull] UseParser.ConditionalContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.conditional"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitConditional([NotNull] UseParser.ConditionalContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.pre"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterPre([NotNull] UseParser.PreContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.pre"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitPre([NotNull] UseParser.PreContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.post"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterPost([NotNull] UseParser.PostContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.post"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitPost([NotNull] UseParser.PostContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="UseParser.enumeration"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

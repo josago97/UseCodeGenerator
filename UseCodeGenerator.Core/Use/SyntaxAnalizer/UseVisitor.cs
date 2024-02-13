@@ -93,6 +93,30 @@ public interface IUseVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOperationBody([NotNull] UseParser.OperationBodyContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStatement([NotNull] UseParser.StatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.conditional"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConditional([NotNull] UseParser.ConditionalContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.pre"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPre([NotNull] UseParser.PreContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.post"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPost([NotNull] UseParser.PostContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="UseParser.enumeration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
