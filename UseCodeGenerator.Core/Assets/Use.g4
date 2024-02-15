@@ -7,6 +7,7 @@ startRule:
 	(class 
 	| enumeration 
 	| association)*
+	constraints?
 	EOF;
 
 /* ====== Model ====== */
@@ -40,23 +41,21 @@ parameter:
 
 operationBody: 
 	BEGIN 
-		statement*
+		statements
 	END
 	pre*
 	post*;
 
+statements: 
+	statement? (';' statement*)?;
+
 statement
 	: conditional
 	| (~(END))+
-	//| (~(END) | [-+/%<>])+
 	;
-	//(~(END) | '->' | '.' )+;
-	//(~END | ' ' | [.-+/%<>:=();])*
 	
-
 conditional:
-	'if' '('? statement ')'? 'then' statement* ('else' statement*)?  END ';';
-
+	'if' '('? statement ')'? 'then' statement* ('else' statement*)?  END;
 
 pre:
 	'pre:' statement;
@@ -95,19 +94,21 @@ stringLiteral: STRING_LITERAL;
 /* ====== Association ====== */
 
 association: 
-    ASSOCIATION associationName BETWEEN
+    (ASSOCIATION | COMPOSITION) associationName BETWEEN
     associationItem
 	associationItem
     END;
 
 associationName: ID;
 
-associationItem: className multiplicity ROLE roleName;
+associationItem: className multiplicity ROLE roleName ORDERED?;
 
 roleName: ID;
 
 multiplicity: '[' multiplicityValue ('..' multiplicityValue)? ']';
 multiplicityValue: NUMBER | '*';
+
+constraints: CONSTRAINTS .*? EOF;
 
 /* ================= Lexer rules ================= */
 
@@ -118,11 +119,14 @@ ATTRIBUTES: 'attributes';
 BEGIN: 'begin';
 BETWEEN: 'between';
 CLASS: 'class';
+COMPOSITION: 'composition';
+CONSTRAINTS: 'constraints';
 END: 'end';
 ENUM: 'enum';
 LT: '<';
 MODEL: 'model';
 OPERATIONS: 'operations';
+ORDERED: 'ordered';
 ROLE: 'role';
 
 // Primitive types
@@ -141,12 +145,14 @@ NUMBER: [0-9]+;
 ID: [A-Za-z_][A-Za-z0-9_]*;
 
 // Ignore
-COMMENT: (
-    '#' ~[\r\n]*
-    | '//' .*?
+COMMENT: 
+	('#' .*? END_LINE
+    | '//' .*? END_LINE
     | '/*' .*? '*/'
+	| '--' .*? END_LINE
     ) -> skip;
-WS: [ \t\r\n]+ -> skip;
+END_LINE: [\n\r]+ -> skip;
+WS: [ \t]+ -> skip;
 OTHER: . -> skip;
 
 

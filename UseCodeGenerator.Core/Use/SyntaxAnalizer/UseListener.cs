@@ -132,6 +132,16 @@ public interface IUseListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitOperationBody([NotNull] UseParser.OperationBodyContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.statements"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStatements([NotNull] UseParser.StatementsContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.statements"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStatements([NotNull] UseParser.StatementsContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="UseParser.statement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -341,5 +351,15 @@ public interface IUseListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitMultiplicityValue([NotNull] UseParser.MultiplicityValueContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.constraints"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterConstraints([NotNull] UseParser.ConstraintsContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.constraints"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitConstraints([NotNull] UseParser.ConstraintsContext context);
 }
 } // namespace UseCodeGenerator.Core.Use.SyntaxAnalizer

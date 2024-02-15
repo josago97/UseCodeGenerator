@@ -93,6 +93,12 @@ public interface IUseVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOperationBody([NotNull] UseParser.OperationBodyContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.statements"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStatements([NotNull] UseParser.StatementsContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="UseParser.statement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -218,5 +224,11 @@ public interface IUseVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitMultiplicityValue([NotNull] UseParser.MultiplicityValueContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="UseParser.constraints"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConstraints([NotNull] UseParser.ConstraintsContext context);
 }
 } // namespace UseCodeGenerator.Core.Use.SyntaxAnalizer

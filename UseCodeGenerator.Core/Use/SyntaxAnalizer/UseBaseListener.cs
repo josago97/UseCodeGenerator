@@ -157,6 +157,18 @@ public partial class UseBaseListener : IUseListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitOperationBody([NotNull] UseParser.OperationBodyContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.statements"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterStatements([NotNull] UseParser.StatementsContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.statements"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitStatements([NotNull] UseParser.StatementsContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="UseParser.statement"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -408,6 +420,18 @@ public partial class UseBaseListener : IUseListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitMultiplicityValue([NotNull] UseParser.MultiplicityValueContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="UseParser.constraints"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterConstraints([NotNull] UseParser.ConstraintsContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="UseParser.constraints"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitConstraints([NotNull] UseParser.ConstraintsContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>
